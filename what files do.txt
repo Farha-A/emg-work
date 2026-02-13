@@ -1,0 +1,73 @@
+clean_ids.py
+    Purpose: Removes specific session IDs (292, 221) from 'info_h_2.csv' and 'emg_stream_h_2.csv' to clean the dataset.
+    Functions:
+        - clean_files(): Checks for the existence of 'info_h_2.csv' and 'emg_stream_h_2.csv', reads them, filters out rows with the specified IDs, and saves the cleaned data back to the files.
+
+constants.py
+    Purpose: Defines constant values used across the project, including screen dimensions, frame rate, test duration, and logging interval.
+    Variables:
+        - WIDTH: Screen width (960).
+        - HEIGHT: Screen height (640).
+        - FPS: Frames per second (60).
+        - TEST_DURATION: Duration of the test in seconds (3).
+        - LOGGING_INTERVAL: Interval for logging data (0.01 seconds).
+
+dataframe.py
+    Purpose: Processes raw EMG data from 'emg_stream_h_2.csv'. It parses string representations of tuple values (filtered, envelope) using ast.literal_eval, aggregates them by session and level, and calculates the average of segments. The cleaned and averaged data is saved to 'emg_streamed_cleaned.csv'.
+    Functions:
+        - average_segments(lst, n_segments=3): Splits a list into 'n_segments', calculates the average of each segment, and returns a list of these averages. Handles specific logic for session ID '595' where n_segments is 2.
+
+eda.ipynb
+    Purpose: Performs Exploratory Data Analysis (EDA) on the 'emg_streamed_cleaned.csv' dataset.
+    Cells:
+        - Loads 'emg_streamed_cleaned.csv' using pandas.
+        - Displays the first few rows of the dataframe using head().
+
+emg.py
+    Purpose: Handles the connection to an Arduino via serial port to read EMG data. It runs a background thread to continuously read and parse incoming data lines into filtered and envelope values.
+    Classes:
+        - EMGReader: Manages the serial connection and data reading.
+    Functions:
+        - __init__(port="COM6", baud=115200): Initializes the serial connection and starts the reading loop.
+        - _loop(): Continuously reads lines from the serial port, parses 'filtered' and 'envelope' values, and updates the class attributes.
+        - stop(): Stops the reading loop and closes the serial connection.
+
+feature_engineering.py
+    Purpose: Feature engineering script that reads 'emg_streamed_cleaned.csv', parses the 'filtered_values', chunks them into 50-value segments, and calculates various time-domain and frequency-domain features (WL, AAC, DASDV, AR, CC). It assigns an output label based on 'level_number' and saves the extracted features to 'emg_features.csv'.
+    Functions:
+        - calculate_emg_features(signal, ar_order=4): Takes an EMG signal segment and an autoregressive order as input. Calculates Waveform Length (WL), Average Amplitude Change (AAC), Difference Absolute Standard Deviation Value (DASDV), Auto-regressive Coefficients (AR), and Cepstral Coefficients (CC). Returns a dictionary containing these features.
+
+livestream.py
+    Purpose: Simulates or performs real-time processing of EMG data streams. It uses a trained model to make predictions on a live data stream by buffering incoming values and calculating features on the fly.
+    Functions:
+        - process_livestream(data_stream): Consumes a data stream, maintains a rolling buffer of 50 values, calculates features for each full buffer, and uses the loaded 'bg_model.h5' to predict the output.
+        - main execution: Sets up an EMGReader, a Logger, and runs the process_livestream function using a live stream generator.
+
+logger.py
+    Purpose: Handles data logging functionality. It supports logging session metadata to 'info.csv' and high-frequency streaming data to 'emg_stream.csv'. It includes a threaded worker for background logging and a generator for live streaming.
+    Classes:
+        - Logger: Manages file paths and logging operations.
+    Functions:
+        - ensure_log_header(): Creates 'info.csv' with the appropriate headers if it doesn't exist.
+        - log_level_result(session_id, name, age, ...): Appends a new row of session results to 'info.csv'.
+        - _stream_worker(...): Background thread function that logs high-frequency data to 'emg_stream.csv' in chunks.
+        - start_stream(session_id, level_number, get_value_callable): Starts the background logging thread.
+        - stop_stream(): Stops the background logging thread.
+        - live_stream_generator(session_id, level_number, ...): A generator that yields values for real-time processing while simultaneously logging them to 'emg_stream.csv'.
+
+model.py
+    Purpose: Defines, trains, evaluates, and saves a neural network model for EMG signal classification. It handles data loading, splitting, model construction (Sequential NN), and predicting.
+    Functions:
+        - load_and_preprocess_data(filepath='emg_features.csv'): Loads feature data, parses array columns (AR, CC), extracts scalar features (WL, AAC, DASDV), and returns the feature matrix X and target vector y.
+        - split_data(X, y, test_size=0.2, random_state=13): Splits the data into training and testing sets.
+        - build_model(input_dim=INPUT_DIM, verbose=False): Constructs and compiles a Sequential neural network with two hidden layers and one output layer.
+        - train_neural_network(model, X_train, y_train, epochs=5, batch_size=32): Trains the model with early stopping.
+        - predict(model, X): Makes a binary prediction (True/False) for a single input based on a 0.5 threshold.
+        - evaluate_model(model, X_test, y_test): Evaluates the model on the test set and returns accuracy.
+        - save_model_to_disk(model, filepath='bg_model.h5'): Saves the trained model to a file.
+        - load_and_predict(model_path, input_data): Loads a saved model and makes a prediction on new input data.
+
+verify_loading.py
+    Purpose: Script to verify that the saved model ('bg_model.h5') can be successfully loaded and used to make predictions.
+    Functions:
+        - None (Script only): Generates a random input sample, calls 'model.load_and_predict', and prints whether the prediction was successful.

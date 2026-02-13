@@ -1,0 +1,54 @@
+Each person will do it thrice and averages will be taken.
+
+Levels:
+1 -> Relaxed
+2 -> Max
+3 -> Light
+4 -> Preferance
+
+EMG outputs 4 values.
+The very last value is the chip's estimate of it being triggered or not (very inaccurate not helpful)
+The first value is heavily random not clearly direct with bite, will cause noise.
+2nd and third valuea are propotional to biting -> the ones we use.
+
+Neural Network:
+Max, preference -> 1
+Relaxed, light -> 0
+
+Model input:
+should i just shove in the time series data, or feature engineer a few features to be input?
+too little
+
+Data collected:
+session id per run not human
+redo mine
+i think sherif's might be fucked 
+divide list len by three and avg
+ana
+269 -> once
+190 -> twice
+sherif -> 626
+Mostafa -> 382 
+
+Broken session IDs (2b dropped):
+300
+
+some values are reversed, decrease upon clenching (???)
+
+
+
+so i have 3s of data
+preference is ~~ 0.5s
+split into 0.1s chunks and have all of them be different inputs orrrr use the 0.5s chunks directly?
+    smol test:
+      *0.1s chunks so input size = 5*n
+      *0.5s chunks so input size = 1*n
+      n is
+feature engineer into several time domain features
+rms, 
+
+
+uhm
+all give 82.5% data
+all model editions from GWO, and any feature set from sfs
+data too little to be clear -> more data needed
