@@ -54,10 +54,6 @@ def calculate_emg_features(signal, ar_order=4):
         "Cepstral_Coeffs": cc
     }
 
-# Example Usage:
-# signal_data = np.random.normal(0, 1, 1000)
-# results = calculate_emg_features(signal_data)
-# print(results)
 
 if __name__ == "__main__":
     import pandas as pd
@@ -106,10 +102,10 @@ if __name__ == "__main__":
                 # Construct the row for the new DataFrame
                 feature_row = {
                     "WL": features["WL"],
-                    # "AAC": features["AAC"],
-                    # "DASDV": features["DASDV"],
-                    # "AR": features["AR_Coeffs"], # Keeping as array/list
-                    # "CC": features["Cepstral_Coeffs"], # Keeping as array/list
+                    "AAC": features["AAC"],
+                    "DASDV": features["DASDV"],
+                    "AR": features["AR_Coeffs"], # Keeping as array/list
+                    "CC": features["Cepstral_Coeffs"], # Keeping as array/list
                     "Output": output_label
                 }
                 extracted_features.append(feature_row)
@@ -118,8 +114,7 @@ if __name__ == "__main__":
     features_df = pd.DataFrame(extracted_features)
     
     # Reorder columns to match request: WL, AAC, DASDV, AR, CC, Output
-    # features_df = features_df[['WL', 'AAC', 'DASDV', 'AR', 'CC', 'Output']]
-    features_df = features_df[['WL', 'Output']]
+    features_df = features_df[['WL', 'AAC', 'DASDV', 'AR', 'CC', 'Output']]
 
     print(features_df.head())
     
