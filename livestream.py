@@ -1,3 +1,5 @@
+import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import collections
 import numpy as np
 import tensorflow as tf
@@ -22,7 +24,7 @@ def process_livestream(data_stream):
     # Load the model
     # Note: Ensure bg_model.h5 exists. 
     try:
-        model = load_model('bg_model.h5')
+        model = load_model('Models\\bg_model.h5')
         print("Model loaded successfully.")
     except Exception as e:
         print(f"Error loading model: {e}")
