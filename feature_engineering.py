@@ -81,13 +81,23 @@ if __name__ == "__main__":
         level_number = row['level_number']
         
         # Determine Output based on level_number
-        if level_number in [2, 4]:
+        # if gulp is last level
+        if level_number in [2, 4, 6]:
             output_label = 1
-        elif level_number in [1, 3]:
+        elif level_number in [1, 3, 5, 7]:
             output_label = 0
         else:
             output_label = -1 # Or some other default/error value
             print(f"Warning: Unexpected level_number {level_number} at row {index}")
+
+        # if gulp is first level
+        # if level_number in [3, 5, 7]:
+        #     output_label = 1
+        # elif level_number in [1, 2, 4, 6]:
+        #     output_label = 0
+        # else:
+        #     output_label = -1 # Or some other default/error value
+        #     print(f"Warning: Unexpected level_number {level_number} at row {index}")
 
         # Chunk the data into 50-value segments
         segment_size = 50
