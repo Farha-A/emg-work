@@ -22,13 +22,13 @@ too little
 Data collected:
 session id per run not human
 redo mine
-i think sherif's might be fucked 
+i think s's might be fucked 
 divide list len by three and avg
 ana
 269 -> once
 190 -> twice
-sherif -> 626
-Mostafa -> 382 
+sa -> 626
+mt -> 382 
 
 Broken session IDs (2b dropped):
 300
@@ -59,3 +59,6 @@ first gulp is illegitimate
 
 912 -> OY ID
 3rd teeth in contact broken
+
+
+test using only envelope values as model input (higher std may be better)
