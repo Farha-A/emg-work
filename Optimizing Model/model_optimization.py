@@ -1,7 +1,12 @@
 import numpy as np
+import sys
+import os
+
+# Add the parent directory to sys.path so we can import model.py
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import model
 import tensorflow as tf
-import os
 
 # Suppress TensorFlow logging
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -158,7 +163,7 @@ def gwo_optimization(X_train, y_train, X_test, y_test, num_wolves=5, max_iter=10
 if __name__ == "__main__":
     # Load data
     print("Loading data...")
-    X, y = model.load_and_preprocess_data('emg_features.csv')
+    X, y = model.load_and_preprocess_data('emg_features_cc.csv')
     
     if X is not None and y is not None:
         X_train, X_test, y_train, y_test = model.split_data(X, y)

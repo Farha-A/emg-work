@@ -2,12 +2,17 @@ import numpy as np
 import pandas as pd
 import ast
 import os
+import sys
+
+# Suppress TensorFlow oneDNN warning
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
 from statsmodels.tsa.ar_model import AutoReg
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Dense, Dropout, Input
 
 # Set seeds for reproducibility
 np.random.seed(13)
@@ -26,8 +31,13 @@ def calculate_emg_features(signal, ar_order=4, threshold=0.01):
     aac = wl / N
     dasdv = np.sqrt(np.sum(np.diff(x)**2) / (N - 1))
     
-    res = AutoReg(x, lags=ar_order).fit()
-    ar_coeffs = res.params[1:] 
+    try:
+        res = AutoReg(x, lags=ar_order).fit()
+        # statsmodels returns [intercept, a1, a2, ...], we take the coefficients a_p
+        # Note: Signs may vary by convention; standard AR is xi = sum(ap * xi-p)
+        ar_coeffs = res.params[1:] 
+    except ValueError:
+        ar_coeffs = np.zeros(ar_order)
     
     # CC calculation (from feature_engineering.py)
     cc = np.zeros(ar_order)
@@ -147,9 +157,10 @@ def build_custom_model(input_dim):
     # Dropout: 0.3146
     
     model = Sequential()
+    model.add(Input(shape=(input_dim,)))
     
     # First Hidden Layer
-    model.add(Dense(32, input_dim=input_dim, activation='relu'))
+    model.add(Dense(32, activation='relu'))
     model.add(Dropout(0.3146))
     
     # Output Layer
@@ -214,8 +225,32 @@ def sequential_forward_selection(df, target_col='Output'):
             
     return best_features, best_accuracy
 
+class Logger(object):
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        # Use 'a' to append instead of 'w' to overwrite
+        self.log = open(filename, "a", encoding="utf-8")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
+
 if __name__ == "__main__":
-    input_file = 'emg_streamed_cleaned.csv'
+    import datetime
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    log_path = os.path.join(script_dir, 'choosing_features_output.txt')
+    sys.stdout = Logger(log_path)
+    
+    # Add a visual separator for new runs in the log
+    print(f"\n{'='*50}")
+    print(f"Starting new run at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{'='*50}\n")
+
+    input_file = 'Data/emg_streamed_cleaned_2.csv'
     
     # 1. Load and extract all features
     df = load_and_preprocess_all(input_file)
@@ -224,7 +259,7 @@ if __name__ == "__main__":
         # 2. Run Forward Feature Selection
         best_feats, best_acc = sequential_forward_selection(df)
         
-        print("\n" + "="*30)
+        print("\n" + "="*30)    
         print("RESULT")
         print("="*30)
         print(f"Best Accuracy: {best_acc * 100:.2f}%")

@@ -1,0 +1,80 @@
+Loading data from Data/emg_streamed_cleaned_2.csv...
+Extracted features for 256 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'CC_3' | New Best Accuracy: 0.7500
+No improvement with remaining features (Max Acc in this step: 0.7308). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 75.00%
+Best Feature Set (1): ['CC_3']
+
+==================================================
+Starting new run at: 2026-03-06 21:13:23
+==================================================
+
+Loading data from Data/emg_streamed_cleaned_2.csv...
+Extracted features for 256 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'CC_3' | New Best Accuracy: 0.7500
+No improvement with remaining features (Max Acc in this step: 0.7500). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 75.00%
+Best Feature Set (1): ['CC_3']
+
+==================================================
+Starting new run at: 2026-03-06 23:52:20
+==================================================
+
+Loading data from Data/emg_streamed_cleaned_2.csv...
+Extracted features for 256 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'WL' | New Best Accuracy: 0.7308
+No improvement with remaining features (Max Acc in this step: 0.7308). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 73.08%
+Best Feature Set (1): ['WL']
+
+==================================================
+Starting new run at: 2026-03-06 23:55:13
+==================================================
+
+Loading data from Data/emg_streamed_cleaned_2.csv...
+Extracted features for 256 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'WL' | New Best Accuracy: 0.7308
+No improvement with remaining features (Max Acc in this step: 0.7308). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 73.08%
+Best Feature Set (1): ['WL']
+
+==================================================
+Starting new run at: 2026-03-07 00:01:19
+==================================================
+
+Loading data from Data/emg_streamed_cleaned_2.csv...
+Extracted features for 256 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'CC_2' | New Best Accuracy: 0.7500
+No improvement with remaining features (Max Acc in this step: 0.7308). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 75.00%
+Best Feature Set (1): ['CC_2']

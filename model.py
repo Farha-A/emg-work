@@ -3,7 +3,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Conv1D, MaxPooling1D, Flatten, LSTM
+from tensorflow.keras.layers import Dense, Conv1D, MaxPooling1D, Flatten, LSTM, Input
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -13,8 +13,10 @@ import sys
 
 # input_dim=11 based on: 3 scalars (WL, AAC, DASDV) + 4 (AR) + 4 (CC)
 INPUT_DIM = 11
+# input_dim=4 based on: 4 (CC)
+INPUT_DIM = 4
 
-def load_and_preprocess_data(filepath='emg_features.csv'):
+def load_and_preprocess_data(filepath='emg_features_cc.csv'):
     """
     Loads data from CSV, parses array columns, and prepares X and y.
     """
@@ -35,14 +37,18 @@ def load_and_preprocess_data(filepath='emg_features.csv'):
 
     # Parse AR and CC columns
     # Assuming AR and CC are length 4 based on previous observation
-    ar_data = np.stack(df['AR'].apply(parse_array_string).values)
+    # ar_data = np.stack(df['AR'].apply(parse_array_string).values)
+
+    # Parse CC column
+    # Assuming CC is length 4 based on previous observation
     cc_data = np.stack(df['CC'].apply(parse_array_string).values)
     
     # Extract scalar features
-    scalar_data = df[['WL', 'AAC', 'DASDV']].values
-    
+    # scalar_data = df[['WL', 'AAC', 'DASDV']].values
+
     # Combine all features into X
-    X = np.hstack((scalar_data, ar_data, cc_data))
+    # X = np.hstack((scalar_data, ar_data, cc_data))
+    X = cc_data
     
     # Extract labels
     y = df['Output'].values
@@ -59,8 +65,10 @@ def build_model(input_dim=INPUT_DIM, hidden_layers=2, neurons=16, dropout=0.0, v
     # Build a neural network with variable structure
     model = Sequential()
     
+    model.add(Input(shape=(input_dim,)))
+    
     # Layer 1: First Hidden layer
-    model.add(Dense(neurons, input_dim=input_dim, activation='relu'))
+    model.add(Dense(neurons, activation='relu'))
     if dropout > 0:
         model.add(tf.keras.layers.Dropout(dropout))
         
@@ -123,7 +131,7 @@ def load_and_predict(model_path, input_data):
 
 if __name__ == "__main__":
     # Use command line argument for filename if provided, else default
-    file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features.csv'
+    file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features_cc.csv'
     
     print(f"Loading data from {file_path}...")
     X, y = load_and_preprocess_data(file_path)

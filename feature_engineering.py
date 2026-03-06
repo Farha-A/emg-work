@@ -17,15 +17,15 @@ def calculate_emg_features(signal, ar_order=4):
     
     # 2.1.11 Waveform Length (WL)
     # Sum of absolute differences between consecutive samples
-    wl = np.sum(np.abs(np.diff(x)))
+    # wl = np.sum(np.abs(np.diff(x)))
     
     # 2.1.12 Average Amplitude Change (AAC)
     # WL divided by the number of samples
-    aac = wl / N
+    # aac = wl / N
     
     # 2.1.13 Difference Absolute Standard Deviation Value (DASDV)
     # Square root of the mean of squared differences
-    dasdv = np.sqrt(np.sum(np.diff(x)**2) / (N - 1))
+    # dasdv = np.sqrt(np.sum(np.diff(x)**2) / (N - 1))
     
     # 2.1.23 Auto-regressive Coefficients (AR)
     # Using Burg's method or Yule-Walker to estimate coefficients a_p
@@ -50,10 +50,10 @@ def calculate_emg_features(signal, ar_order=4):
             cc[p-1] = -ar_coeffs[p-1] - sum_val
 
     return {
-        "WL": wl,
-        "AAC": aac,
-        "DASDV": dasdv,
-        "AR_Coeffs": ar_coeffs,
+        # "WL": wl,
+        # "AAC": aac,
+        # "DASDV": dasdv,
+        # "AR_Coeffs": ar_coeffs,
         "Cepstral_Coeffs": cc
     }
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     import ast
 
     # Load the cleaned data
-    input_file = 'emg_streamed_cleaned.csv'
+    input_file = 'Data/emg_streamed_cleaned_2.csv'
     try:
         df = pd.read_csv(input_file)
     except FileNotFoundError:
@@ -114,10 +114,10 @@ if __name__ == "__main__":
                 
                 # Construct the row for the new DataFrame
                 feature_row = {
-                    "WL": features["WL"],
-                    "AAC": features["AAC"],
-                    "DASDV": features["DASDV"],
-                    "AR": features["AR_Coeffs"], # Keeping as array/list
+                    # "WL": features["WL"],
+                    # "AAC": features["AAC"],
+                    # "DASDV": features["DASDV"],
+                    # "AR": features["AR_Coeffs"], # Keeping as array/list
                     "CC": features["Cepstral_Coeffs"], # Keeping as array/list
                     "Output": output_label
                 }
@@ -127,10 +127,10 @@ if __name__ == "__main__":
     features_df = pd.DataFrame(extracted_features)
     
     # Reorder columns to match request: WL, AAC, DASDV, AR, CC, Output
-    features_df = features_df[['WL', 'AAC', 'DASDV', 'AR', 'CC', 'Output']]
+    features_df = features_df[['CC', 'Output']]
 
     print(features_df.head())
     
     # Save to CSV (Optional but good practice)
-    features_df.to_csv('emg_features.csv', index=False)
-    print("Features saved to emg_features.csv")
+    features_df.to_csv('emg_features_cc.csv', index=False)
+    print("Features saved to emg_features_cc.csv")

@@ -24,7 +24,7 @@ def process_livestream(data_stream):
     # Load the model
     # Note: Ensure bg_model.h5 exists. 
     try:
-        model = load_model('Models\\bg_model.h5')
+        model = load_model('Models\\optimized_model_2.h5')
         print("Model loaded successfully.")
     except Exception as e:
         print(f"Error loading model: {e}")
@@ -51,17 +51,18 @@ def process_livestream(data_stream):
             # Flatten features to match model input (1, 11)
             # Order: WL, AAC, DASDV, AR (4), CC (4)
             
-            wl = features['WL']
-            aac = features['AAC']
-            dasdv = features['DASDV']
-            ar = features['AR_Coeffs']
+            # wl = features['WL']
+            # aac = features['AAC']
+            # dasdv = features['DASDV']
+            # ar = features['AR_Coeffs']
             cc = features['Cepstral_Coeffs']
             
             # Ensure AR and CC are arrays/lists of length 4
             # (calculate_emg_features handles this, but good to be safe if dynamic)
             
             # Construct the feature vector
-            feature_vector = np.concatenate(([wl, aac, dasdv], ar, cc))
+            # feature_vector = np.concatenate(([wl, aac, dasdv], ar, cc))
+            feature_vector = cc
             
             # Reshape for model input: (1, 11)
             input_data = feature_vector.reshape(1, -1)
