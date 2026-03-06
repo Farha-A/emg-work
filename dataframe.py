@@ -10,7 +10,7 @@ def average_segments(lst, n_segments=3):
     return [sum(float(x) for x in group) / n_segments for group in zip(*parts)]
 
 # Read the CSV file
-file = pd.read_csv('emg_stream_h_2.csv')
+file = pd.read_csv('Data/emg_stream_m.csv')
 
 # Parse the 'value' column from string to tuple using ast.literal_eval
 # The string format is assumed to be "(val1, val2)"

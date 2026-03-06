@@ -30,10 +30,13 @@ def calculate_emg_features(signal, ar_order=4):
     # 2.1.23 Auto-regressive Coefficients (AR)
     # Using Burg's method or Yule-Walker to estimate coefficients a_p
     # Note: Using a simplified linalg approach for demonstration
-    res = AutoReg(x, lags=ar_order).fit()
-    # statsmodels returns [intercept, a1, a2, ...], we take the coefficients a_p
-    # Note: Signs may vary by convention; standard AR is xi = sum(ap * xi-p)
-    ar_coeffs = res.params[1:] 
+    try:
+        res = AutoReg(x, lags=ar_order).fit()
+        # statsmodels returns [intercept, a1, a2, ...], we take the coefficients a_p
+        # Note: Signs may vary by convention; standard AR is xi = sum(ap * xi-p)
+        ar_coeffs = res.params[1:] 
+    except ValueError:
+        ar_coeffs = np.zeros(ar_order)
     
     # 2.1.24 Cepstral Coefficients (CC)
     # Derived recursively from AR coefficients (ap)
@@ -82,22 +85,22 @@ if __name__ == "__main__":
         
         # Determine Output based on level_number
         # if gulp is last level
-        if level_number in [2, 4, 6]:
-            output_label = 1
-        elif level_number in [1, 3, 5, 7]:
-            output_label = 0
-        else:
-            output_label = -1 # Or some other default/error value
-            print(f"Warning: Unexpected level_number {level_number} at row {index}")
-
-        # if gulp is first level
-        # if level_number in [3, 5, 7]:
+        # if level_number in [2, 4]:
         #     output_label = 1
-        # elif level_number in [1, 2, 4, 6]:
+        # elif level_number in [1, 3, 5, 6, 7]:
         #     output_label = 0
         # else:
         #     output_label = -1 # Or some other default/error value
         #     print(f"Warning: Unexpected level_number {level_number} at row {index}")
+
+        # if gulp is first level
+        if level_number in [3, 5]:
+            output_label = 1
+        elif level_number in [1, 2, 4, 6, 7]:
+            output_label = 0
+        else:
+            output_label = -1 # Or some other default/error value
+            print(f"Warning: Unexpected level_number {level_number} at row {index}")
 
         # Chunk the data into 50-value segments
         segment_size = 50
@@ -129,5 +132,5 @@ if __name__ == "__main__":
     print(features_df.head())
     
     # Save to CSV (Optional but good practice)
-    features_df.to_csv('emg_wl.csv', index=False)
-    print("Features saved to emg_wl.csv")
+    features_df.to_csv('emg_features.csv', index=False)
+    print("Features saved to emg_features.csv")
