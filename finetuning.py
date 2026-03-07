@@ -20,13 +20,6 @@ def calculate_emg_features(signal, ar_order=4):
     x = np.array(signal)
     N = len(x)
     
-    # WL
-    wl = np.sum(np.abs(np.diff(x)))
-    # AAC
-    aac = wl / N
-    # DASDV
-    dasdv = np.sqrt(np.sum(np.diff(x)**2) / (N - 1))
-    
     # AR
     try:
         res = AutoReg(x, lags=ar_order).fit()
@@ -45,10 +38,6 @@ def calculate_emg_features(signal, ar_order=4):
             cc[p-1] = -ar_coeffs[p-1] - sum_val
 
     return {
-        "WL": wl,
-        "AAC": aac,
-        "DASDV": dasdv,
-        "AR_Coeffs": ar_coeffs,
         "Cepstral_Coeffs": cc
     }
 
@@ -102,10 +91,11 @@ def engineer_features(df):
         # Determine Output
         if level_number in [2, 4]:
             output_label = 1
-        elif level_number in [1, 3]:
+        elif level_number in [1, 3, 5, 6, 7]:
             output_label = 0
         else:
-            output_label = -1
+            output_label = -1 # Or some other default/error value
+            print(f"Warning: Unexpected level_number {level_number} at row {index}")
             
         segment_size = 50
         # Iterate through filtered_values
@@ -114,10 +104,6 @@ def engineer_features(df):
             if len(segment) > 0:
                 features = calculate_emg_features(segment)
                 feature_row = {
-                    "WL": features["WL"],
-                    "AAC": features["AAC"],
-                    "DASDV": features["DASDV"],
-                    "AR": features["AR_Coeffs"],
                     "CC": features["Cepstral_Coeffs"],
                     "Output": output_label
                 }
@@ -125,7 +111,7 @@ def engineer_features(df):
                 
     features_df = pd.DataFrame(extracted_features)
     if not features_df.empty:
-        features_df = features_df[['WL', 'AAC', 'DASDV', 'AR', 'CC', 'Output']]
+        features_df = features_df[['CC', 'Output']]
         
     return features_df
 
@@ -190,7 +176,7 @@ def save_model(model):
     print(f"Model saved to {output_path}")
 
 # 5.1
-def main(csv_path='finetuningData.csv', model_path='bg_model.h5'):
+def main(csv_path='finetuningData.csv', model_path='optimized_model_2.h5'):
     """
     Main execution pipeline.
     """
@@ -207,6 +193,4 @@ def main(csv_path='finetuningData.csv', model_path='bg_model.h5'):
     save_model(model)
     
 if __name__ == "__main__":
-    # Example usage
-    # Ensure a model file and csv file exist before running direct
     main()
