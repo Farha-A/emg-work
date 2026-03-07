@@ -148,11 +148,9 @@ def finetune_model(model_path, df):
     
     # If engineer_features returns lists/arrays, we need to stack them
     try:
-        ar_data = np.stack(df['AR'].values)
         cc_data = np.stack(df['CC'].values)
-        scalar_data = df[['WL', 'AAC', 'DASDV']].values
         
-        X = np.hstack((scalar_data, ar_data, cc_data))
+        X = cc_data
         y = df['Output'].values
     except Exception as e:
         print(f"Error preprocessing data: {e}")
