@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 import sys
+import matplotlib.pyplot as plt
 
 # input_dim=11 based on: 3 scalars (WL, AAC, DASDV) + 4 (AR) + 4 (CC)
 INPUT_DIM = 11
@@ -61,7 +62,7 @@ def split_data(X, y, test_size=0.2, random_state=13):
     """
     return train_test_split(X, y, test_size=test_size, random_state=random_state)
 
-def build_model(input_dim=INPUT_DIM, hidden_layers=2, neurons=16, dropout=0.0, verbose=False):
+def build_model(input_dim=INPUT_DIM, hidden_layers=1, neurons=16, dropout=0.0, verbose=False):
     # Build a neural network with variable structure
     model = Sequential()
     
@@ -95,8 +96,39 @@ def train_neural_network(model, X_train, y_train, epochs=5, batch_size=32):
     Trains the Keras model.
     """
     early_stopping=tf.keras.callbacks.EarlyStopping(monitor='accuracy', patience=5, restore_best_weights=True)
-    model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1, callbacks=[early_stopping], validation_split=0.2)
-    return model
+    history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1, callbacks=[early_stopping], validation_split=0.2)
+    
+    return model, history
+
+def save_training_graphs(history, filename='training_graphs.png'):
+    """
+    Saves the training and validation accuracy and loss graphs as a PNG file.
+    """
+    
+    plt.figure(figsize=(12, 5))
+    
+    # Plot training & validation accuracy values
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('Model Accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    
+    # Plot training & validation loss values
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close()
+    print(f"Training graphs saved to {filename}")
 
 def predict(model, X):
     value = model.predict(X)[0][0]
@@ -146,7 +178,10 @@ if __name__ == "__main__":
         model = build_model(input_dim=X.shape[1], verbose=True)
         
         print("Training model...")
-        train_neural_network(model, X_train, y_train, 50)
+        model, history = train_neural_network(model, X_train, y_train, 50)
+        
+        print("Saving training graphs...")
+        save_training_graphs(history)
         
         print("Evaluating model...")
         accuracy = evaluate_model(model, X_test, y_test)
