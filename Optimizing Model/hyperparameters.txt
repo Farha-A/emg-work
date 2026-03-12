@@ -1,0 +1,6 @@
+Optimization Complete!
+Best Accuracy: 75.32%
+Best Hyperparameters:
+  Hidden Layers: 2
+  Neurons: 8
+  Dropout: 0.2137

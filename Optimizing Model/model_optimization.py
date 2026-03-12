@@ -47,8 +47,8 @@ def fitness_function(position, X_train, y_train, X_test, y_test):
              return 1.0 # Worst fitness if data fails
              
         input_dim = X_train.shape[1]
-        nn_model = model.build_model(
-            input_dim=input_dim,
+        emg_model = model.EMGModel(input_dim=input_dim)
+        emg_model.build(
             hidden_layers=hidden_layers,
             neurons=neurons,
             dropout=dropout,
@@ -56,10 +56,10 @@ def fitness_function(position, X_train, y_train, X_test, y_test):
         )
         
         # Train
-        model.train_neural_network(nn_model, X_train, y_train, epochs=20, batch_size=32)
+        emg_model.train(X_train, y_train, epochs=20, batch_size=32)
         
         # Evaluate
-        accuracy = model.evaluate_model(nn_model, X_test, y_test)
+        accuracy = emg_model.evaluate(X_test, y_test)
         
         print(f"Accuracy: {accuracy:.4f}")
         
@@ -163,13 +163,13 @@ def gwo_optimization(X_train, y_train, X_test, y_test, num_wolves=5, max_iter=10
 if __name__ == "__main__":
     # Load data
     print("Loading data...")
-    X, y = model.load_and_preprocess_data('emg_features_cc.csv')
+    X, y = model.EMGModel.load_and_preprocess_data('C:\\University\\Grad!!!!!!!!!\\Data collection\\Cleaning\\Data\\Features\\emg_features_cc_2.csv')
     
     if X is not None and y is not None:
-        X_train, X_test, y_train, y_test = model.split_data(X, y)
+        X_train, X_test, y_train, y_test = model.EMGModel.split_data(X, y)
         print(f"Data Loaded. Train: {X_train.shape}, Test: {X_test.shape}")
         
-        best_pos, best_score = gwo_optimization(X_train, y_train, X_test, y_test, num_wolves=25, max_iter=10)
+        best_pos, best_score = gwo_optimization(X_train, y_train, X_test, y_test, num_wolves=30, max_iter=10)
         
         # Decode best solution
         hidden_layers = int(round(best_pos[0]))
@@ -177,26 +177,27 @@ if __name__ == "__main__":
         dropout = best_pos[2]
         neurons = [8, 16, 32, 64][max(0, min(neuron_index, 3))]
         
-        print("\nOptimization Complete!")
-        print(f"Best Accuracy: {(1 - best_score) * 100:.2f}%")
-        print("Best Hyperparameters:")
-        print(f"  Hidden Layers: {hidden_layers}")
-        print(f"  Neurons: {neurons}")
-        print(f"  Dropout: {dropout:.4f}")
+        with open("hyperparameters.txt", "w") as f:
+            f.write("Optimization Complete!\n")
+            f.write(f"Best Accuracy: {(1 - best_score) * 100:.2f}%\n")
+            f.write("Best Hyperparameters:\n")
+            f.write(f"  Hidden Layers: {hidden_layers}\n")
+            f.write(f"  Neurons: {neurons}\n")
+            f.write(f"  Dropout: {dropout:.4f}\n")
         
         # Train final model with best parameters
         print("\nTraining final model with best parameters...")
-        final_model = model.build_model(
-            input_dim=X.shape[1],
+        final_emg_model = model.EMGModel(input_dim=X.shape[1])
+        final_emg_model.build(
             hidden_layers=hidden_layers,
             neurons=neurons,
             dropout=dropout,
             verbose=True
         )
-        model.train_neural_network(final_model, X_train, y_train, epochs=50, batch_size=32)
-        final_acc = model.evaluate_model(final_model, X_test, y_test)
+        final_emg_model.train(X_train, y_train, epochs=50, batch_size=32)
+        final_acc = final_emg_model.evaluate(X_test, y_test)
         print(f"Final Model Test Accuracy: {final_acc * 100:.2f}%")
         
-        model.save_model_to_disk(final_model, 'optimized_model.h5')
+        final_emg_model.save('optimized_model.h5')
     else:
         print("Failed to load data.")
