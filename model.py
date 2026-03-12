@@ -15,7 +15,7 @@ class EMGModel:
     predicting, and fine-tuning.
     """
 
-    DEFAULT_INPUT_DIM = 4  # 4 Cepstral Coefficients
+    DEFAULT_INPUT_DIM = 8  # 4 Filtered + 4 Envelope Cepstral Coefficients
 
     def __init__(self, model=None, input_dim=None):
         self.model = model
@@ -118,8 +118,9 @@ class EMGModel:
             print(f"Error: File '{filepath}' not found.")
             return None, None
 
-        cc_data = np.stack(df['CC'].apply(FeatureEngineer.parse_array_string).values)
-        X = cc_data
+        filtered_cc = np.stack(df['Filtered_CC'].apply(FeatureEngineer.parse_array_string).values)
+        envelope_cc = np.stack(df['Envelope_CC'].apply(FeatureEngineer.parse_array_string).values)
+        X = np.hstack([filtered_cc, envelope_cc])
         y = df['Output'].values
         return X, y
 

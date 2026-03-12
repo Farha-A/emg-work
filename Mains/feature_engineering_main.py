@@ -24,23 +24,42 @@ if __name__ == "__main__":
             print(f"Error parsing filtered_values at row {index}")
             continue
 
+        try:
+            envelope_values = ast.literal_eval(row['envelope_values'])
+        except (ValueError, SyntaxError):
+            print(f"Error parsing envelope_values at row {index}")
+            continue
+
         label = FeatureEngineer.get_output_label(row['level_number'])
         if label == -1:
             print(f"Warning: Unexpected level_number {row['level_number']} at row {index}")
 
         segment_size = 50
-        for i in range(0, len(filtered_values), segment_size):
-            segment = filtered_values[i : i + segment_size]
-            if len(segment) > 0:
-                features = FeatureEngineer.calculate_emg_features(segment)
+        max_len = max(len(filtered_values), len(envelope_values))
+        for i in range(0, max_len, segment_size):
+            filtered_segment = filtered_values[i : i + segment_size]
+            envelope_segment = envelope_values[i : i + segment_size]
+            if len(filtered_segment) > 0 or len(envelope_segment) > 0:
+                import numpy as np
+                filtered_cc = (
+                    FeatureEngineer.calculate_emg_features(filtered_segment)["Cepstral_Coeffs"]
+                    if len(filtered_segment) > 0
+                    else np.zeros(4)
+                )
+                envelope_cc = (
+                    FeatureEngineer.calculate_emg_features(envelope_segment)["Cepstral_Coeffs"]
+                    if len(envelope_segment) > 0
+                    else np.zeros(4)
+                )
                 extracted_features.append({
-                    "CC": features["Cepstral_Coeffs"],
+                    "Filtered_CC": filtered_cc,
+                    "Envelope_CC": envelope_cc,
                     "Output": label,
                 })
 
     features_df = pd.DataFrame(extracted_features)
     if not features_df.empty:
-        features_df = features_df[['CC', 'Output']]
+        features_df = features_df[['Filtered_CC', 'Envelope_CC', 'Output']]
 
         print(features_df.head())
         features_df.to_csv('emg_features_cc.csv', index=False)

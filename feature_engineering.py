@@ -120,7 +120,7 @@ class FeatureEngineer:
     def extract_features_from_df(df, segment_size=50):
         """Extract Cepstral Coefficient features from a processed DataFrame.
 
-        Returns a ``DataFrame`` with columns ``['CC', 'Output']``.
+        Returns a ``DataFrame`` with columns ``['Filtered_CC', 'Envelope_CC', 'Output']``.
         """
         import pandas as pd
 
@@ -130,21 +130,35 @@ class FeatureEngineer:
         extracted = []
         for _, row in df.iterrows():
             filtered_values = row['filtered_values']
+            envelope_values = row['envelope_values']
             label = FeatureEngineer.get_output_label(row['level_number'])
 
             if label == -1:
                 print(f"Warning: Unexpected level_number {row['level_number']}")
 
-            for i in range(0, len(filtered_values), segment_size):
-                segment = filtered_values[i : i + segment_size]
-                if len(segment) > 0:
-                    features = FeatureEngineer.calculate_emg_features(segment)
+            max_len = max(len(filtered_values), len(envelope_values))
+            for i in range(0, max_len, segment_size):
+                filtered_segment = filtered_values[i : i + segment_size]
+                envelope_segment = envelope_values[i : i + segment_size]
+
+                if len(filtered_segment) > 0 or len(envelope_segment) > 0:
+                    filtered_cc = (
+                        FeatureEngineer.calculate_emg_features(filtered_segment)["Cepstral_Coeffs"]
+                        if len(filtered_segment) > 0
+                        else np.zeros(4)
+                    )
+                    envelope_cc = (
+                        FeatureEngineer.calculate_emg_features(envelope_segment)["Cepstral_Coeffs"]
+                        if len(envelope_segment) > 0
+                        else np.zeros(4)
+                    )
                     extracted.append({
-                        "CC": features["Cepstral_Coeffs"],
+                        "Filtered_CC": filtered_cc,
+                        "Envelope_CC": envelope_cc,
                         "Output": label,
                     })
 
         features_df = pd.DataFrame(extracted)
         if not features_df.empty:
-            features_df = features_df[['CC', 'Output']]
+            features_df = features_df[['Filtered_CC', 'Envelope_CC', 'Output']]
         return features_df

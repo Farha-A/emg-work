@@ -25,8 +25,9 @@ def main(csv_path='finetuningData.csv', model_path='optimized_model_2.h5'):
         return
 
     # 3. Prepare arrays
-    cc_data = np.stack(features_df['CC'].values)
-    X = cc_data
+    filtered_cc = np.stack(features_df['Filtered_CC'].values)
+    envelope_cc = np.stack(features_df['Envelope_CC'].values)
+    X = np.hstack([filtered_cc, envelope_cc])
     y = features_df['Output'].values
 
     valid = y != -1
