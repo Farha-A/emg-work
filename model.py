@@ -1,190 +1,190 @@
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Conv1D, MaxPooling1D, Flatten, LSTM, Input
-
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-
-import sys
+from tensorflow.keras.layers import Dense, Input
 import matplotlib.pyplot as plt
 
-# input_dim=11 based on: 3 scalars (WL, AAC, DASDV) + 4 (AR) + 4 (CC)
-INPUT_DIM = 11
-# input_dim=4 based on: 4 (CC)
-INPUT_DIM = 4
 
-def load_and_preprocess_data(filepath='emg_features_cc.csv'):
-    """
-    Loads data from CSV, parses array columns, and prepares X and y.
-    """
-    try:
-        df = pd.read_csv(filepath)
-    except FileNotFoundError:
-        print(f"Error: File '{filepath}' not found.")
-        return None, None
+class EMGModel:
+    """Wraps a Keras model for EMG binary classification.
 
-    # Helper to parse string arrays like '[0.1 0.2 ...]'
-    def parse_array_string(s):
+    Handles building, training, evaluating, saving, loading,
+    predicting, and fine-tuning.
+    """
+
+    DEFAULT_INPUT_DIM = 4  # 4 Cepstral Coefficients
+
+    def __init__(self, model=None, input_dim=None):
+        self.model = model
+        self.input_dim = input_dim or self.DEFAULT_INPUT_DIM
+
+    # ------------------------------------------------------------------ #
+    #  Build
+    # ------------------------------------------------------------------ #
+    def build(self, hidden_layers=1, neurons=16, dropout=0.0, verbose=False):
+        """Construct a dense neural network."""
+        m = Sequential()
+        m.add(Input(shape=(self.input_dim,)))
+
+        for _ in range(hidden_layers):
+            m.add(Dense(neurons, activation='relu'))
+            if dropout > 0:
+                m.add(tf.keras.layers.Dropout(dropout))
+
+        m.add(Dense(1, activation='sigmoid'))
+        m.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+        if verbose:
+            m.summary()
+
+        self.model = m
+        return self
+
+    # ------------------------------------------------------------------ #
+    #  Train / Fine-tune
+    # ------------------------------------------------------------------ #
+    def train(self, X_train, y_train, epochs=5, batch_size=32):
+        """Train (or continue training) the model. Returns the Keras history."""
+        early_stop = tf.keras.callbacks.EarlyStopping(
+            monitor='accuracy', patience=5, restore_best_weights=True
+        )
+        history = self.model.fit(
+            X_train, y_train,
+            epochs=epochs,
+            batch_size=batch_size,
+            verbose=1,
+            callbacks=[early_stop],
+            validation_split=0.2,
+        )
+        return history
+
+    def finetune(self, X_train, y_train, epochs=5, batch_size=32, lr=0.001):
+        """Re-compile with a fresh Adam optimiser and train."""
+        self.model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
+            loss='binary_crossentropy',
+            metrics=['accuracy'],
+        )
+        return self.train(X_train, y_train, epochs=epochs, batch_size=batch_size)
+
+    # ------------------------------------------------------------------ #
+    #  Evaluate / Predict
+    # ------------------------------------------------------------------ #
+    def evaluate(self, X_test, y_test):
+        """Return accuracy on the test set."""
+        _, accuracy = self.model.evaluate(X_test, y_test, verbose=0)
+        return accuracy
+
+    def predict(self, X):
+        """Return a boolean prediction (threshold 0.5)."""
+        value = self.model.predict(X)[0][0]
+        return value > 0.5
+
+    # ------------------------------------------------------------------ #
+    #  Save / Load
+    # ------------------------------------------------------------------ #
+    def save(self, filepath='bg_model.h5'):
+        """Persist model to disk."""
+        directory = os.path.dirname(filepath)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        self.model.save(filepath)
+        print(f"Model saved to {filepath}")
+
+    @classmethod
+    def load(cls, filepath):
+        """Load a saved model from *filepath* and return an ``EMGModel`` instance."""
+        if not os.path.exists(filepath):
+            print(f"Error: Model '{filepath}' not found.")
+            return None
+        model = load_model(filepath)
+        return cls(model=model, input_dim=model.input_shape[-1])
+
+    # ------------------------------------------------------------------ #
+    #  Data helpers
+    # ------------------------------------------------------------------ #
+    @staticmethod
+    def load_and_preprocess_data(filepath='emg_features_cc.csv'):
+        """Load a feature CSV and return (X, y) numpy arrays."""
+        import pandas as pd
+        from feature_engineering import FeatureEngineer
+
         try:
-            # Remove brackets and newlines, then split by whitespace
-            clean_s = s.replace('[', '').replace(']', '').replace('\n', '')
-            return np.fromstring(clean_s, sep=' ')
-        except Exception:
-            return np.zeros(4) # Fallback if parsing fails
+            df = pd.read_csv(filepath)
+        except FileNotFoundError:
+            print(f"Error: File '{filepath}' not found.")
+            return None, None
 
-    # Parse AR and CC columns
-    # Assuming AR and CC are length 4 based on previous observation
-    # ar_data = np.stack(df['AR'].apply(parse_array_string).values)
+        cc_data = np.stack(df['CC'].apply(FeatureEngineer.parse_array_string).values)
+        X = cc_data
+        y = df['Output'].values
+        return X, y
 
-    # Parse CC column
-    # Assuming CC is length 4 based on previous observation
-    cc_data = np.stack(df['CC'].apply(parse_array_string).values)
-    
-    # Extract scalar features
-    # scalar_data = df[['WL', 'AAC', 'DASDV']].values
+    @staticmethod
+    def split_data(X, y, test_size=0.2, random_state=13):
+        """Split arrays into train/test sets."""
+        from sklearn.model_selection import train_test_split
+        return train_test_split(X, y, test_size=test_size, random_state=random_state)
 
-    # Combine all features into X
-    # X = np.hstack((scalar_data, ar_data, cc_data))
-    X = cc_data
-    
-    # Extract labels
-    y = df['Output'].values
-    
-    return X, y
+    @staticmethod
+    def save_training_graphs(history, filename='training_graphs.png'):
+        """Save accuracy & loss curves as a PNG."""
+        plt.figure(figsize=(12, 5))
 
-def split_data(X, y, test_size=0.2, random_state=13):
-    """
-    Splits data into training and testing sets.
-    """
-    return train_test_split(X, y, test_size=test_size, random_state=random_state)
+        plt.subplot(1, 2, 1)
+        plt.plot(history.history['accuracy'])
+        plt.plot(history.history['val_accuracy'])
+        plt.title('Model Accuracy')
+        plt.ylabel('Accuracy')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Validation'], loc='upper left')
 
-def build_model(input_dim=INPUT_DIM, hidden_layers=1, neurons=16, dropout=0.0, verbose=False):
-    # Build a neural network with variable structure
-    model = Sequential()
-    
-    model.add(Input(shape=(input_dim,)))
-    
-    # Layer 1: First Hidden layer
-    model.add(Dense(neurons, activation='relu'))
-    if dropout > 0:
-        model.add(tf.keras.layers.Dropout(dropout))
-        
-    # Optional Layer 2: Additional Hidden layer
-    if hidden_layers > 1:
-        model.add(Dense(neurons, activation='relu'))
-        if dropout > 0:
-            model.add(tf.keras.layers.Dropout(dropout))
-            
-    # Output layer with sigmoid activation
-    model.add(Dense(1, activation='sigmoid'))
+        plt.subplot(1, 2, 2)
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('Model Loss')
+        plt.ylabel('Loss')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Validation'], loc='upper left')
 
-    # Compile the model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+        plt.tight_layout()
+        plt.savefig(filename)
+        plt.close()
+        print(f"Training graphs saved to {filename}")
 
-    if verbose:
-        # Display model summary
-        model.summary()
 
-    return model
-
-def train_neural_network(model, X_train, y_train, epochs=5, batch_size=32):
-    """
-    Trains the Keras model.
-    """
-    early_stopping=tf.keras.callbacks.EarlyStopping(monitor='accuracy', patience=5, restore_best_weights=True)
-    history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1, callbacks=[early_stopping], validation_split=0.2)
-    
-    return model, history
-
-def save_training_graphs(history, filename='training_graphs.png'):
-    """
-    Saves the training and validation accuracy and loss graphs as a PNG file.
-    """
-    
-    plt.figure(figsize=(12, 5))
-    
-    # Plot training & validation accuracy values
-    plt.subplot(1, 2, 1)
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
-    plt.title('Model Accuracy')
-    plt.ylabel('Accuracy')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper left')
-    
-    # Plot training & validation loss values
-    plt.subplot(1, 2, 2)
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.title('Model Loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper left')
-    
-    plt.tight_layout()
-    plt.savefig(filename)
-    plt.close()
-    print(f"Training graphs saved to {filename}")
-
-def predict(model, X):
-    value = model.predict(X)[0][0]
-    return (value > 0.5)
-
-def evaluate_model(model, X_test, y_test):
-    """
-    Evaluates the model on test data and returns accuracy.
-    """
-    loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
-    return accuracy
-
-def save_model_to_disk(model, filepath='bg_model.h5'):
-    """
-    Saves the trained model to disk.
-    """
-    model.save(filepath)
-    print(f"Model saved to {filepath}")
-
-def load_and_predict(model_path, input_data):
-    """
-    Loads a saved model and makes predictions on input data.
-    Input data should be preprocessed and match the model's input shape.
-    """
-    try:
-        model = load_model(model_path)
-        predictions = predict(model, input_data)
-        return predictions
-    except Exception as e:
-        print(f"Error loading model or predicting: {e}")
-        return None
-
+# ------------------------------------------------------------------ #
+#  Standalone entry-point
+# ------------------------------------------------------------------ #
 if __name__ == "__main__":
-    # Use command line argument for filename if provided, else default
+    import sys
+
     file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features_cc.csv'
-    
+
     print(f"Loading data from {file_path}...")
-    X, y = load_and_preprocess_data(file_path)
-    
+    X, y = EMGModel.load_and_preprocess_data(file_path)
+
     if X is not None and y is not None:
         print(f"Data loaded. Shape: X={X.shape}, y={y.shape}")
-        
-        X_train, X_test, y_train, y_test = split_data(X, y)
-        print(f"Data split. Train shape: {X_train.shape}, Test shape: {X_test.shape}")
-        
+
+        X_train, X_test, y_train, y_test = EMGModel.split_data(X, y)
+        print(f"Data split. Train: {X_train.shape}, Test: {X_test.shape}")
+
         print("Building model...")
-        model = build_model(input_dim=X.shape[1], verbose=True)
-        
+        emg = EMGModel(input_dim=X.shape[1])
+        emg.build(verbose=True)
+
         print("Training model...")
-        model, history = train_neural_network(model, X_train, y_train, 50)
-        
+        history = emg.train(X_train, y_train, epochs=50)
+
         print("Saving training graphs...")
-        save_training_graphs(history)
-        
+        EMGModel.save_training_graphs(history)
+
         print("Evaluating model...")
-        accuracy = evaluate_model(model, X_test, y_test)
+        accuracy = emg.evaluate(X_test, y_test)
         print(f"Model Accuracy on Test Set: {accuracy * 100:.2f}%")
-        
-        save_model_to_disk(model)
+
+        emg.save()
