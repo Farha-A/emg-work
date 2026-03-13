@@ -116,3 +116,61 @@ RESULT
 ==============================
 Best Accuracy: 87.01%
 Best Feature Set (2): ['filt_DASDV', 'filt_MYOP']
+
+==================================================
+Starting new run at: 2026-03-13 16:39:09
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.2137}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_DASDV' | New Best Accuracy: 0.8235
+No improvement with remaining features (Max Acc in this step: 0.8235). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 82.35%
+Best Feature Set (1): ['filt_DASDV']
+
+==================================================
+Starting new run at: 2026-03-13 16:42:51
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.2137}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_AAC' | New Best Accuracy: 0.8235
+Step 2: Added 'filt_MYOP' | New Best Accuracy: 0.8333
+Step 3: Added 'env_CC_4' | New Best Accuracy: 0.8529
+Step 4: Added 'filt_CC_1' | New Best Accuracy: 0.8627
+No improvement with remaining features (Max Acc in this step: 0.8529). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 86.27%
+Best Feature Set (4): ['filt_AAC', 'filt_MYOP', 'env_CC_4', 'filt_CC_1']
+
+==================================================
+Starting new run at: 2026-03-13 16:52:21
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.2137}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_AAC' | New Best Accuracy: 0.8235
+Step 2: Added 'env_AR_3' | New Best Accuracy: 0.8431
+No improvement with remaining features (Max Acc in this step: 0.8431). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 84.31%
+Best Feature Set (2): ['filt_AAC', 'env_AR_3']

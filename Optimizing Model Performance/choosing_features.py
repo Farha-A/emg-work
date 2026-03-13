@@ -312,7 +312,7 @@ if __name__ == "__main__":
     print(f"Starting new run at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*50}\n")
 
-    input_file = r'C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_streamed_cleaned_2.csv'
+    input_file = r'C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv'
     hyperparams_file = os.path.join(script_dir, 'hyperparameters.txt')
     
     # 1. Load hyperparameters from file
