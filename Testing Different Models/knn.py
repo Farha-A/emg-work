@@ -145,6 +145,7 @@ if __name__ == "__main__":
     random_state = 13
 
     # --- MLflow setup ---
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
     mlflow.set_experiment("EMG")
 
     print(f"Loading data from {file_path}...")
