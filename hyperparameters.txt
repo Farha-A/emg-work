@@ -1,0 +1,10 @@
+==================================================
+==================================================
+==================================================
+Starting new run at: 2026-03-13 21:16:43
+Optimization Complete!
+Best Accuracy: 86.27%
+Best Hyperparameters:
+  Hidden Layers: 1
+  Neurons: 16
+  Dropout: 0.3518

@@ -40,29 +40,23 @@ if __name__ == "__main__":
             filtered_segment = filtered_values[i : i + segment_size]
             envelope_segment = envelope_values[i : i + segment_size]
             if len(filtered_segment) > 0 or len(envelope_segment) > 0:
-                import numpy as np
-                filtered_cc = (
-                    FeatureEngineer.calculate_emg_features(filtered_segment)["Cepstral_Coeffs"]
+                filtered_feats = (
+                    FeatureEngineer.calculate_emg_features(filtered_segment)
                     if len(filtered_segment) > 0
-                    else np.zeros(4)
-                )
-                envelope_cc = (
-                    FeatureEngineer.calculate_emg_features(envelope_segment)["Cepstral_Coeffs"]
-                    if len(envelope_segment) > 0
-                    else np.zeros(4)
+                    else {"DASDV": 0.0, "MYOP": 0.0}
                 )
                 extracted_features.append({
-                    "Filtered_CC": filtered_cc,
-                    "Envelope_CC": envelope_cc,
+                    "filt_DASDV": filtered_feats["DASDV"],
+                    "filt_MYOP": filtered_feats["MYOP"],
                     "Output": label,
                 })
 
     features_df = pd.DataFrame(extracted_features)
     if not features_df.empty:
-        features_df = features_df[['Filtered_CC', 'Envelope_CC', 'Output']]
+        features_df = features_df[['filt_DASDV', 'filt_MYOP', 'Output']]
 
         print(features_df.head())
-        features_df.to_csv('emg_features_cc.csv', index=False)
-        print("Features saved to emg_features_cc.csv")
+        features_df.to_csv('emg_features_dasdv_myop.csv', index=False)
+        print("Features saved to emg_features_dasdv_myop.csv")
     else:
         print("No features were extracted.")

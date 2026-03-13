@@ -10,6 +10,7 @@ import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import mlflow
+from config import INPUT_DIM
 
 
 class EMGRandomForest:
@@ -18,7 +19,7 @@ class EMGRandomForest:
     Mirrors the EMGModel API: build, train, evaluate, predict, save, load.
     """
 
-    DEFAULT_INPUT_DIM = 8  # 4 Filtered + 4 Envelope Cepstral Coefficients
+    DEFAULT_INPUT_DIM = INPUT_DIM
 
     def __init__(self, model=None, input_dim=None):
         self.model = model

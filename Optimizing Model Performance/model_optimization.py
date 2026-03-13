@@ -7,6 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import model
 import tensorflow as tf
+import datetime
 
 # Suppress TensorFlow logging
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -163,7 +164,7 @@ def gwo_optimization(X_train, y_train, X_test, y_test, num_wolves=5, max_iter=10
 if __name__ == "__main__":
     # Load data
     print("Loading data...")
-    X, y = model.EMGModel.load_and_preprocess_data('C:\\University\\Grad!!!!!!!!!\\Data collection\\Cleaning\\Data\\Features\\emg_features_cc_2.csv')
+    X, y = model.EMGModel.load_and_preprocess_data(r'C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\emg_features_dasdv_myop.csv')
     
     if X is not None and y is not None:
         X_train, X_test, y_train, y_test = model.EMGModel.split_data(X, y)
@@ -177,7 +178,9 @@ if __name__ == "__main__":
         dropout = best_pos[2]
         neurons = [8, 16, 32, 64][max(0, min(neuron_index, 3))]
         
-        with open("hyperparameters.txt", "w") as f:
+        with open("hyperparameters.txt", "a") as f:
+            f.write("==================================================\n")
+            f.write("Starting new run at: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
             f.write("Optimization Complete!\n")
             f.write(f"Best Accuracy: {(1 - best_score) * 100:.2f}%\n")
             f.write("Best Hyperparameters:\n")

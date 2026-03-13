@@ -1,5 +1,4 @@
 import numpy as np
-from statsmodels.tsa.ar_model import AutoReg
 
 
 class FeatureEngineer:
@@ -43,31 +42,27 @@ class FeatureEngineer:
     #  Feature extraction
     # ------------------------------------------------------------------ #
     @staticmethod
-    def calculate_emg_features(signal, ar_order=4):
-        """Calculate EMG features (AR → Cepstral Coefficients) from *signal*.
+    def calculate_emg_features(signal, threshold=0.01):
+        """Calculate EMG features (DASDV, MYOP) from *signal*.
 
-        Returns a dict with key ``'Cepstral_Coeffs'``.
+        Returns a dict with keys ``'DASDV'``, ``'MYOP'``.
         """
         x = np.array(signal)
+        N = len(x)
 
-        # Auto-regressive coefficients
-        try:
-            res = AutoReg(x, lags=ar_order).fit()
-            ar_coeffs = res.params[1:]
-        except (ValueError, Exception):
-            ar_coeffs = np.zeros(ar_order)
+        # DASDV
+        if N > 1:
+            dasdv = np.sqrt(np.sum(np.diff(x)**2) / (N - 1))
+        else:
+            dasdv = 0.0
 
-        # Cepstral coefficients derived from AR coefficients
-        cc = np.zeros(ar_order)
-        if len(ar_coeffs) > 0:
-            cc[0] = -ar_coeffs[0]
-            for p in range(2, ar_order + 1):
-                sum_val = 0
-                for l in range(1, p):
-                    sum_val += (1 - l / p) * ar_coeffs[l - 1] * cc[p - l - 1]
-                cc[p - 1] = -ar_coeffs[p - 1] - sum_val
+        # MYOP
+        if N > 0:
+            myop = (1/N) * np.sum(np.abs(x) >= threshold)
+        else:
+            myop = 0.0
 
-        return {"Cepstral_Coeffs": cc}
+        return {"DASDV": dasdv, "MYOP": myop}
 
     # ------------------------------------------------------------------ #
     #  High-level pipelines
@@ -118,9 +113,9 @@ class FeatureEngineer:
 
     @staticmethod
     def extract_features_from_df(df, segment_size=50):
-        """Extract Cepstral Coefficient features from a processed DataFrame.
+        """Extract features from a processed DataFrame.
 
-        Returns a ``DataFrame`` with columns ``['Filtered_CC', 'Envelope_CC', 'Output']``.
+        Returns a ``DataFrame`` with columns ``['filt_DASDV', 'filt_MYOP', 'Output']``.
         """
         import pandas as pd
 
@@ -142,23 +137,18 @@ class FeatureEngineer:
                 envelope_segment = envelope_values[i : i + segment_size]
 
                 if len(filtered_segment) > 0 or len(envelope_segment) > 0:
-                    filtered_cc = (
-                        FeatureEngineer.calculate_emg_features(filtered_segment)["Cepstral_Coeffs"]
+                    filtered_feats = (
+                        FeatureEngineer.calculate_emg_features(filtered_segment)
                         if len(filtered_segment) > 0
-                        else np.zeros(4)
-                    )
-                    envelope_cc = (
-                        FeatureEngineer.calculate_emg_features(envelope_segment)["Cepstral_Coeffs"]
-                        if len(envelope_segment) > 0
-                        else np.zeros(4)
+                        else {"DASDV": 0.0, "MYOP": 0.0}
                     )
                     extracted.append({
-                        "Filtered_CC": filtered_cc,
-                        "Envelope_CC": envelope_cc,
+                        "filt_DASDV": filtered_feats["DASDV"],
+                        "filt_MYOP": filtered_feats["MYOP"],
                         "Output": label,
                     })
 
         features_df = pd.DataFrame(extracted)
         if not features_df.empty:
-            features_df = features_df[['Filtered_CC', 'Envelope_CC', 'Output']]
+            features_df = features_df[['filt_DASDV', 'filt_MYOP', 'Output']]
         return features_df

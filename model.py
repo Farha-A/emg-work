@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Input
 import matplotlib.pyplot as plt
+from config import INPUT_DIM
 
 
 class EMGModel:
@@ -15,7 +16,7 @@ class EMGModel:
     predicting, and fine-tuning.
     """
 
-    DEFAULT_INPUT_DIM = 8  # 4 Filtered + 4 Envelope Cepstral Coefficients
+    DEFAULT_INPUT_DIM = INPUT_DIM
 
     def __init__(self, model=None, input_dim=None):
         self.model = model
@@ -118,9 +119,9 @@ class EMGModel:
             print(f"Error: File '{filepath}' not found.")
             return None, None
 
-        filtered_cc = np.stack(df['Filtered_CC'].apply(FeatureEngineer.parse_array_string).values)
-        envelope_cc = np.stack(df['Envelope_CC'].apply(FeatureEngineer.parse_array_string).values)
-        X = np.hstack([filtered_cc, envelope_cc])
+        filtered_dasdv = df['filt_DASDV'].values.reshape(-1, 1)
+        filtered_myop = df['filt_MYOP'].values.reshape(-1, 1)
+        X = np.hstack([filtered_dasdv, filtered_myop])
         y = df['Output'].values
         return X, y
 
