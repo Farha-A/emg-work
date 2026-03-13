@@ -28,7 +28,7 @@ class EMGLogisticRegression:
     # ------------------------------------------------------------------ #
     #  Build
     # ------------------------------------------------------------------ #
-    def build(self, C=1.0, max_iter=1000, solver='lbfgs', verbose=False):
+    def build(self, C=1.0, max_iter=1000, solver='lbfgs', verbose=False, penalty='l2'):
         """Construct a Logistic Regression classifier.
 
         Parameters
@@ -46,6 +46,7 @@ class EMGLogisticRegression:
             C=C,
             max_iter=max_iter,
             solver=solver,
+            penalty=penalty,
             random_state=13,
         )
 
@@ -144,6 +145,7 @@ if __name__ == "__main__":
     solver = 'lbfgs'
     test_size = 0.2
     random_state = 13
+    penalty = 'l2'
 
     # --- MLflow setup ---
     mlflow.set_tracking_uri("sqlite:///mlflow.db")
@@ -174,11 +176,12 @@ if __name__ == "__main__":
                 "C": C,
                 "max_iter": max_iter,
                 "solver": solver,
+                "penalty": penalty,
             })
 
             print("Building model...")
             lr = EMGLogisticRegression(input_dim=X.shape[1])
-            lr.build(C=C, max_iter=max_iter, solver=solver, verbose=True)
+            lr.build(C=C, max_iter=max_iter, solver=solver, penalty=penalty, verbose=True)
 
             print("Training model...")
             lr.train(X_train, y_train)

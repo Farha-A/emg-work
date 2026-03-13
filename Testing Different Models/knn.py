@@ -138,8 +138,8 @@ if __name__ == "__main__":
     file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features_dasdv_myop.csv'
 
     # --- Model / training parameters ---
-    n_neighbors = 5
-    weights = 'uniform'
+    n_neighbors = 14
+    weights = 'distance'
     metric = 'minkowski'
     test_size = 0.2
     random_state = 13

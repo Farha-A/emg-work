@@ -178,8 +178,9 @@ if __name__ == "__main__":
         dropout = best_pos[2]
         neurons = [8, 16, 32, 64][max(0, min(neuron_index, 3))]
         
-        with open("hyperparameters.txt", "a") as f:
-            f.write("==================================================\n")
+        save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hyperparameters.txt")
+        with open(save_path, "a") as f:
+            f.write("\n==================================================\n")
             f.write("Starting new run at: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
             f.write("Optimization Complete!\n")
             f.write(f"Best Accuracy: {(1 - best_score) * 100:.2f}%\n")

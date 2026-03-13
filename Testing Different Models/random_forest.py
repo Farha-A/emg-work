@@ -139,8 +139,8 @@ if __name__ == "__main__":
     file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features_dasdv_myop.csv'
 
     # --- Model / training parameters ---
-    n_estimators = 100
-    max_depth = None
+    n_estimators = 5000
+    max_depth = 7
     min_samples_split = 2
     test_size = 0.2
     random_state = 13

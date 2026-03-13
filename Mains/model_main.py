@@ -11,9 +11,9 @@ if __name__ == "__main__":
     file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features_dasdv_myop.csv'
 
     # --- Model / training parameters ---
-    hidden_layers = 2
-    neurons = 8
-    dropout = 0.2137
+    hidden_layers = 1
+    neurons = 16
+    dropout = 0.3708
     epochs = 50
     batch_size = 32
     test_size = 0.2
