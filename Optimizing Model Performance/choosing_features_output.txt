@@ -78,3 +78,41 @@ RESULT
 ==============================
 Best Accuracy: 75.00%
 Best Feature Set (1): ['CC_2']
+
+==================================================
+Starting new run at: 2026-03-13 02:18:34
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.2137}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_streamed_cleaned_2.csv...
+Extracted features for 385 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'env_AAC' | New Best Accuracy: 0.8052
+Step 2: Added 'filt_CC_2' | New Best Accuracy: 0.8312
+No improvement with remaining features (Max Acc in this step: 0.8312). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 83.12%
+Best Feature Set (2): ['env_AAC', 'filt_CC_2']
+
+==================================================
+Starting new run at: 2026-03-13 02:23:57
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.2137}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_streamed_cleaned_2.csv...
+Extracted features for 385 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_DASDV' | New Best Accuracy: 0.8182
+Step 2: Added 'filt_MYOP' | New Best Accuracy: 0.8701
+No improvement with remaining features (Max Acc in this step: 0.8701). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 87.01%
+Best Feature Set (2): ['filt_DASDV', 'filt_MYOP']

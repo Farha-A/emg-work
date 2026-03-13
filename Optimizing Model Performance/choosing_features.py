@@ -120,7 +120,7 @@ def load_and_preprocess_all(file_path):
         df = pd.read_csv(file_path)
     except FileNotFoundError:
         print(f"Error: File {file_path} not found.")
-        return None, None
+        return None
 
     all_features = []
     
@@ -128,40 +128,102 @@ def load_and_preprocess_all(file_path):
         try:
             filtered_values = ast.literal_eval(row['filtered_values'])
         except (ValueError, SyntaxError):
+            filtered_values = []
+        
+        try:
+            envelope_values = ast.literal_eval(row['envelope_values'])
+        except (ValueError, SyntaxError):
+            envelope_values = []
+        
+        if len(filtered_values) == 0 and len(envelope_values) == 0:
             continue
         
         level_number = row['level_number']
         if level_number in [2, 4]:
             output_label = 1
-        elif level_number in [1, 3]:
+        elif level_number in [1, 3, 5, 6, 7]:
             output_label = 0
         else:
             continue
 
         segment_size = 50
-        for i in range(0, len(filtered_values), segment_size):
-            segment = filtered_values[i:i+segment_size]
-            if len(segment) > 0:
-                feats = calculate_emg_features(segment)
-                feats['Output'] = output_label
-                all_features.append(feats)
+        max_len = max(len(filtered_values), len(envelope_values))
+        for i in range(0, max_len, segment_size):
+            filt_segment = filtered_values[i:i+segment_size]
+            env_segment = envelope_values[i:i+segment_size]
+            
+            if len(filt_segment) == 0 and len(env_segment) == 0:
+                continue
+            
+            combined_feats = {}
+            
+            # Features from filtered values
+            if len(filt_segment) > 0:
+                filt_feats = calculate_emg_features(filt_segment)
+                for key, val in filt_feats.items():
+                    combined_feats[f'filt_{key}'] = val
+            else:
+                # Fill with zeros if no filtered segment
+                dummy = calculate_emg_features([0.0] * segment_size)
+                for key in dummy:
+                    combined_feats[f'filt_{key}'] = 0.0
+            
+            # Features from envelope values
+            if len(env_segment) > 0:
+                env_feats = calculate_emg_features(env_segment)
+                for key, val in env_feats.items():
+                    combined_feats[f'env_{key}'] = val
+            else:
+                # Fill with zeros if no envelope segment
+                dummy = calculate_emg_features([0.0] * segment_size)
+                for key in dummy:
+                    combined_feats[f'env_{key}'] = 0.0
+            
+            combined_feats['Output'] = output_label
+            all_features.append(combined_feats)
 
     features_df = pd.DataFrame(all_features)
     print(f"Extracted features for {len(features_df)} segments.")
     return features_df
 
-def build_custom_model(input_dim):
-    # Hyperparameters from request
-    # Hidden Layers: 1
-    # Neurons: 32
-    # Dropout: 0.3146
+def parse_hyperparameters(file_path):
+    """
+    Reads hyperparameters from a text file.
+    Expected format:
+        Hidden Layers: <int>
+        Neurons: <int>
+        Dropout: <float>
+    """
+    params = {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.2}
+    try:
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if 'Hidden Layers:' in line:
+                    params['hidden_layers'] = int(line.split(':')[-1].strip())
+                elif 'Neurons:' in line:
+                    params['neurons'] = int(line.split(':')[-1].strip())
+                elif 'Dropout:' in line:
+                    params['dropout'] = float(line.split(':')[-1].strip())
+        print(f"Loaded hyperparameters: {params}")
+    except FileNotFoundError:
+        print(f"Warning: {file_path} not found, using defaults: {params}")
+    return params
+
+def build_custom_model(input_dim, hyperparams):
+    """
+    Builds a Keras model using hyperparameters loaded from file.
+    """
+    hidden_layers = hyperparams['hidden_layers']
+    neurons = hyperparams['neurons']
+    dropout = hyperparams['dropout']
     
     model = Sequential()
     model.add(Input(shape=(input_dim,)))
     
-    # First Hidden Layer
-    model.add(Dense(32, activation='relu'))
-    model.add(Dropout(0.3146))
+    for i in range(hidden_layers):
+        model.add(Dense(neurons, activation='relu'))
+        model.add(Dropout(dropout))
     
     # Output Layer
     model.add(Dense(1, activation='sigmoid'))
@@ -169,11 +231,11 @@ def build_custom_model(input_dim):
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
-def train_and_evaluate(X, y):
+def train_and_evaluate(X, y, hyperparams):
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    model = build_custom_model(X_train.shape[1])
+    model = build_custom_model(X_train.shape[1], hyperparams)
     
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='accuracy', patience=3, restore_best_weights=True)
     
@@ -183,7 +245,7 @@ def train_and_evaluate(X, y):
     loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
     return accuracy
 
-def sequential_forward_selection(df, target_col='Output'):
+def sequential_forward_selection(df, hyperparams, target_col='Output'):
     # Get all feature columns (excluding target)
     feature_cols = [c for c in df.columns if c != target_col]
     
@@ -206,7 +268,7 @@ def sequential_forward_selection(df, target_col='Output'):
             X = df[current_subset].values
             y = df[target_col].values
             
-            acc = train_and_evaluate(X, y)
+            acc = train_and_evaluate(X, y, hyperparams)
             
             # print(f"  Testing {current_subset} -> Acc: {acc:.4f}")
             
@@ -250,14 +312,18 @@ if __name__ == "__main__":
     print(f"Starting new run at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*50}\n")
 
-    input_file = 'Data/emg_streamed_cleaned_2.csv'
+    input_file = r'C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_streamed_cleaned_2.csv'
+    hyperparams_file = os.path.join(script_dir, 'hyperparameters.txt')
     
-    # 1. Load and extract all features
+    # 1. Load hyperparameters from file
+    hyperparams = parse_hyperparameters(hyperparams_file)
+    
+    # 2. Load and extract all features (filtered + envelope)
     df = load_and_preprocess_all(input_file)
     
     if df is not None and not df.empty:
-        # 2. Run Forward Feature Selection
-        best_feats, best_acc = sequential_forward_selection(df)
+        # 3. Run Forward Feature Selection
+        best_feats, best_acc = sequential_forward_selection(df, hyperparams)
         
         print("\n" + "="*30)    
         print("RESULT")
