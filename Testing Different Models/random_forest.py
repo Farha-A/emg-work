@@ -108,7 +108,7 @@ class EMGRandomForest:
     #  Data helpers  (reuse EMGModel's static methods)
     # ------------------------------------------------------------------ #
     @staticmethod
-    def load_and_preprocess_data(filepath='emg_features_cc.csv'):
+    def load_and_preprocess_data(filepath='emg_features_dasdv_myop.csv'):
         """Load a feature CSV and return (X, y) numpy arrays."""
         import pandas as pd
         from feature_engineering import FeatureEngineer
@@ -119,9 +119,9 @@ class EMGRandomForest:
             print(f"Error: File '{filepath}' not found.")
             return None, None
 
-        filtered_cc = np.stack(df['Filtered_CC'].apply(FeatureEngineer.parse_array_string).values)
-        envelope_cc = np.stack(df['Envelope_CC'].apply(FeatureEngineer.parse_array_string).values)
-        X = np.hstack([filtered_cc, envelope_cc])
+        filtered_dasdv = df['filt_DASDV'].values.reshape(-1, 1)
+        filtered_myop = df['filt_MYOP'].values.reshape(-1, 1)
+        X = np.hstack([filtered_dasdv, filtered_myop])
         y = df['Output'].values
         return X, y
 
@@ -136,7 +136,7 @@ class EMGRandomForest:
 #  Main – mirrors model_main.py
 # ====================================================================== #
 if __name__ == "__main__":
-    file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features_cc.csv'
+    file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features_dasdv_myop.csv'
 
     # --- Model / training parameters ---
     n_estimators = 100

@@ -108,7 +108,7 @@ class EMGModel:
     #  Data helpers
     # ------------------------------------------------------------------ #
     @staticmethod
-    def load_and_preprocess_data(filepath='emg_features_cc.csv'):
+    def load_and_preprocess_data(filepath='emg_features_dasdv_myop.csv'):
         """Load a feature CSV and return (X, y) numpy arrays."""
         import pandas as pd
         from feature_engineering import FeatureEngineer
