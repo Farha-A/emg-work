@@ -164,8 +164,7 @@ def gwo_optimization(X_train, y_train, X_test, y_test, num_wolves=5, max_iter=10
 if __name__ == "__main__":
     # Load data
     print("Loading data...")
-    X, y = model.EMGModel.load_and_preprocess_data(r'C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\emg_features.csv')
-    
+    X, y = model.EMGModel.load_and_preprocess_data(r'C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\emg_features_cleaned.csv')
     if X is not None and y is not None:
         X_train, X_test, y_train, y_test = model.EMGModel.split_data(X, y)
         print(f"Data Loaded. Train: {X_train.shape}, Test: {X_test.shape}")

@@ -13,3 +13,12 @@ Best Hyperparameters:
   Hidden Layers: 1
   Neurons: 16
   Dropout: 0.3708
+
+==================================================
+Starting new run at: 2026-03-18 15:30:52
+Optimization Complete!
+Best Accuracy: 87.25%
+Best Hyperparameters:
+  Hidden Layers: 2
+  Neurons: 8
+  Dropout: 0.4100
