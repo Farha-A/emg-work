@@ -8,7 +8,7 @@ import mlflow
 from model import EMGModel
 
 if __name__ == "__main__":
-    file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features_dasdv_myop.csv'
+    file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features.csv'
 
     # --- Model / training parameters ---
     hidden_layers = 1

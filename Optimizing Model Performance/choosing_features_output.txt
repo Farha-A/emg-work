@@ -174,3 +174,174 @@ RESULT
 ==============================
 Best Accuracy: 84.31%
 Best Feature Set (2): ['filt_AAC', 'env_AR_3']
+
+==================================================
+Starting new run at: 2026-03-18 01:34:48
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 1, 'neurons': 16, 'dropout': 0.3708}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_IEMG' | New Best Accuracy: 0.7941
+No improvement with remaining features (Max Acc in this step: 0.7941). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 79.41%
+Best Feature Set (1): ['filt_IEMG']
+
+==================================================
+Starting new run at: 2026-03-18 01:38:32
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 1, 'neurons': 16, 'dropout': 0.3708}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_IEMG' | New Best Accuracy: 0.7941
+No improvement with remaining features (Max Acc in this step: 0.7941). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 79.41%
+Best Feature Set (1): ['filt_IEMG']
+
+==================================================
+Starting new run at: 2026-03-18 01:42:40
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 1, 'neurons': 16, 'dropout': 0.3708}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_MAVSLP' | New Best Accuracy: 0.8235
+
+==================================================
+Starting new run at: 2026-03-18 01:44:45
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 1, 'neurons': 16, 'dropout': 0.3708}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_MAVSLP' | New Best Accuracy: 0.8039
+Step 2: Added 'env_AR_4' | New Best Accuracy: 0.8137
+No improvement with remaining features (Max Acc in this step: 0.8039). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 81.37%
+Best Feature Set (2): ['filt_MAVSLP', 'env_AR_4']
+
+==================================================
+Starting new run at: 2026-03-18 12:14:36
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 1, 'neurons': 16, 'dropout': 0.3708}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_AAC' | New Best Accuracy: 0.8235
+Step 2: Added 'env_MYOP' | New Best Accuracy: 0.8333
+Step 3: Added 'env_MAVSLP' | New Best Accuracy: 0.8431
+No improvement with remaining features (Max Acc in this step: 0.8431). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 84.31%
+Best Feature Set (3): ['filt_AAC', 'env_MYOP', 'env_MAVSLP']
+
+==================================================
+Starting new run at: 2026-03-18 12:17:20
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 1, 'neurons': 16, 'dropout': 0.3708}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_AAC' | New Best Accuracy: 0.8235
+Step 2: Added 'filt_MAVSLP' | New Best Accuracy: 0.8333
+Step 3: Added 'env_DASDV' | New Best Accuracy: 0.8431
+Step 4: Added 'env_SSC' | New Best Accuracy: 0.8627
+No improvement with remaining features (Max Acc in this step: 0.8431). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 86.27%
+Best Feature Set (4): ['filt_AAC', 'filt_MAVSLP', 'env_DASDV', 'env_SSC']
+
+==================================================
+Starting new run at: 2026-03-18 12:30:09
+==================================================
+
+
+==================================================
+Starting new run at: 2026-03-18 12:33:30
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 1, 'neurons': 16, 'dropout': 0.3708}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_MAVSLP' | New Best Accuracy: 0.8333
+No improvement with remaining features (Max Acc in this step: 0.8333). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 83.33%
+Best Feature Set (1): ['filt_MAVSLP']
+
+==================================================
+Starting new run at: 2026-03-18 12:36:11
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 1, 'neurons': 16, 'dropout': 0.3708}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_MAVSLP' | New Best Accuracy: 0.8039
+Step 2: Added 'filt_AAC' | New Best Accuracy: 0.8235
+Step 3: Added 'filt_AR_2' | New Best Accuracy: 0.8333
+Step 4: Added 'env_DASDV' | New Best Accuracy: 0.8431
+No improvement with remaining features (Max Acc in this step: 0.8431). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 84.31%
+Best Feature Set (4): ['filt_MAVSLP', 'filt_AAC', 'filt_AR_2', 'env_DASDV']
+
+==================================================
+Starting new run at: 2026-03-18 12:45:51
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 1, 'neurons': 16, 'dropout': 0.3708}
+Loading data from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Clean Stream\emg_cleaned_3.csv...
+Extracted features for 506 segments.
+
+Starting Sequential Forward Selection...
+Step 1: Added 'filt_AAC' | New Best Accuracy: 0.8235
+Step 2: Added 'env_WL' | New Best Accuracy: 0.8529
+Step 3: Added 'filt_AR_2' | New Best Accuracy: 0.8627
+No improvement with remaining features (Max Acc in this step: 0.8627). Stopping.
+
+==============================
+RESULT
+==============================
+Best Accuracy: 86.27%
+Best Feature Set (3): ['filt_AAC', 'env_WL', 'filt_AR_2']

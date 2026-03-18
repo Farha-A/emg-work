@@ -43,20 +43,26 @@ if __name__ == "__main__":
                 filtered_feats = (
                     FeatureEngineer.calculate_emg_features(filtered_segment)
                     if len(filtered_segment) > 0
-                    else {"DASDV": 0.0, "MYOP": 0.0}
+                    else {"AAC": 0.0, "WL": 0.0, "AR_2": 0.0}
+                )
+                envelope_feats = (
+                    FeatureEngineer.calculate_emg_features(envelope_segment)
+                    if len(envelope_segment) > 0
+                    else {"AAC": 0.0, "WL": 0.0, "AR_2": 0.0}
                 )
                 extracted_features.append({
-                    "filt_DASDV": filtered_feats["DASDV"],
-                    "filt_MYOP": filtered_feats["MYOP"],
+                    "filt_AAC": filtered_feats["AAC"],
+                    "env_WL": envelope_feats["WL"],
+                    "filt_AR_2": filtered_feats["AR_2"],
                     "Output": label,
                 })
 
     features_df = pd.DataFrame(extracted_features)
     if not features_df.empty:
-        features_df = features_df[['filt_DASDV', 'filt_MYOP', 'Output']]
+        features_df = features_df[['filt_AAC', 'env_WL', 'filt_AR_2', 'Output']]
 
         print(features_df.head())
-        features_df.to_csv('emg_features_dasdv_myop.csv', index=False)
-        print("Features saved to emg_features_dasdv_myop.csv")
+        features_df.to_csv('emg_features.csv', index=False)
+        print("Features saved to emg_features.csv")
     else:
         print("No features were extracted.")

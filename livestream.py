@@ -34,7 +34,7 @@ def process_livestream(data_stream):
         if len(buffer) == 50:
             segment = list(buffer)
             features = FeatureEngineer.calculate_emg_features(segment)
-            feature_vector = np.array([[features['DASDV'], features['MYOP']]])
+            feature_vector = np.array([[features['AAC'], features['WL'], features['AR_2']]])
             prediction = emg_model.predict(feature_vector)
             print(f"Input: {value:.2f} | Buffer Full | Prediction: {prediction}")
         else:

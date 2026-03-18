@@ -107,7 +107,7 @@ class EMGKNN:
     #  Data helpers  (reuse EMGModel's static methods)
     # ------------------------------------------------------------------ #
     @staticmethod
-    def load_and_preprocess_data(filepath='emg_features_dasdv_myop.csv'):
+    def load_and_preprocess_data(filepath='emg_features.csv'):
         """Load a feature CSV and return (X, y) numpy arrays."""
         import pandas as pd
         from feature_engineering import FeatureEngineer
@@ -118,9 +118,10 @@ class EMGKNN:
             print(f"Error: File '{filepath}' not found.")
             return None, None
 
-        filtered_dasdv = df['filt_DASDV'].values.reshape(-1, 1)
-        filtered_myop = df['filt_MYOP'].values.reshape(-1, 1)
-        X = np.hstack([filtered_dasdv, filtered_myop])
+        filt_aac = df['filt_AAC'].values.reshape(-1, 1)
+        env_wl = df['env_WL'].values.reshape(-1, 1)
+        filt_ar2 = df['filt_AR_2'].values.reshape(-1, 1)
+        X = np.hstack([filt_aac, env_wl, filt_ar2])
         y = df['Output'].values
         return X, y
 
@@ -135,7 +136,7 @@ class EMGKNN:
 #  Main – mirrors model_main.py
 # ====================================================================== #
 if __name__ == "__main__":
-    file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features_dasdv_myop.csv'
+    file_path = sys.argv[1] if len(sys.argv) > 1 else 'emg_features.csv'
 
     # --- Model / training parameters ---
     n_neighbors = 14

@@ -1,4 +1,5 @@
 import numpy as np
+from statsmodels.tsa.ar_model import AutoReg
 
 
 class FeatureEngineer:
@@ -42,27 +43,35 @@ class FeatureEngineer:
     #  Feature extraction
     # ------------------------------------------------------------------ #
     @staticmethod
-    def calculate_emg_features(signal, threshold=0.01):
-        """Calculate EMG features (DASDV, MYOP) from *signal*.
+    def calculate_emg_features(signal, ar_order=4):
+        """Calculate EMG features (AAC, WL, AR_2) from *signal*.
 
-        Returns a dict with keys ``'DASDV'``, ``'MYOP'``.
+        Returns a dict with keys ``'AAC'``, ``'WL'``, ``'AR_2'``.
         """
         x = np.array(signal)
         N = len(x)
 
-        # DASDV
+        # WL – Waveform Length
         if N > 1:
-            dasdv = np.sqrt(np.sum(np.diff(x)**2) / (N - 1))
+            wl = np.sum(np.abs(np.diff(x)))
         else:
-            dasdv = 0.0
+            wl = 0.0
 
-        # MYOP
+        # AAC – Average Amplitude Change (WL / N)
         if N > 0:
-            myop = (1/N) * np.sum(np.abs(x) >= threshold)
+            aac = wl / N
         else:
-            myop = 0.0
+            aac = 0.0
 
-        return {"DASDV": dasdv, "MYOP": myop}
+        # AR_2 – 2nd Autoregressive coefficient
+        try:
+            res = AutoReg(x, lags=ar_order).fit()
+            ar_coeffs = res.params[1:]  # [a1, a2, a3, a4]
+            ar_2 = ar_coeffs[1] if len(ar_coeffs) > 1 else 0.0
+        except (ValueError, Exception):
+            ar_2 = 0.0
+
+        return {"AAC": aac, "WL": wl, "AR_2": ar_2}
 
     # ------------------------------------------------------------------ #
     #  High-level pipelines
@@ -115,7 +124,7 @@ class FeatureEngineer:
     def extract_features_from_df(df, segment_size=50):
         """Extract features from a processed DataFrame.
 
-        Returns a ``DataFrame`` with columns ``['filt_DASDV', 'filt_MYOP', 'Output']``.
+        Returns a ``DataFrame`` with columns ``['filt_AAC', 'env_WL', 'filt_AR_2', 'Output']``.
         """
         import pandas as pd
 
@@ -140,15 +149,21 @@ class FeatureEngineer:
                     filtered_feats = (
                         FeatureEngineer.calculate_emg_features(filtered_segment)
                         if len(filtered_segment) > 0
-                        else {"DASDV": 0.0, "MYOP": 0.0}
+                        else {"AAC": 0.0, "WL": 0.0, "AR_2": 0.0}
+                    )
+                    envelope_feats = (
+                        FeatureEngineer.calculate_emg_features(envelope_segment)
+                        if len(envelope_segment) > 0
+                        else {"AAC": 0.0, "WL": 0.0, "AR_2": 0.0}
                     )
                     extracted.append({
-                        "filt_DASDV": filtered_feats["DASDV"],
-                        "filt_MYOP": filtered_feats["MYOP"],
+                        "filt_AAC": filtered_feats["AAC"],
+                        "env_WL": envelope_feats["WL"],
+                        "filt_AR_2": filtered_feats["AR_2"],
                         "Output": label,
                     })
 
         features_df = pd.DataFrame(extracted)
         if not features_df.empty:
-            features_df = features_df[['filt_DASDV', 'filt_MYOP', 'Output']]
+            features_df = features_df[['filt_AAC', 'env_WL', 'filt_AR_2', 'Output']]
         return features_df

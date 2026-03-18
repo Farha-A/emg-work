@@ -25,9 +25,10 @@ def main(csv_path='finetuningData.csv', model_path='optimized_model_2.h5'):
         return
 
     # 3. Prepare arrays
-    filtered_dasdv = features_df['filt_DASDV'].values.reshape(-1, 1)
-    filtered_myop = features_df['filt_MYOP'].values.reshape(-1, 1)
-    X = np.hstack([filtered_dasdv, filtered_myop])
+    filt_aac = features_df['filt_AAC'].values.reshape(-1, 1)
+    env_wl = features_df['env_WL'].values.reshape(-1, 1)
+    filt_ar2 = features_df['filt_AR_2'].values.reshape(-1, 1)
+    X = np.hstack([filt_aac, env_wl, filt_ar2])
     y = features_df['Output'].values
 
     valid = y != -1

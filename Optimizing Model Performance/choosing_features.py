@@ -176,10 +176,22 @@ def load_and_preprocess_all(file_path):
             else:
                 # Fill with zeros if no envelope segment
                 dummy = calculate_emg_features([0.0] * segment_size)
-                for key in dummy:
-                    combined_feats[f'env_{key}'] = 0.0
-            
             combined_feats['Output'] = output_label
+            
+            # Remove highly correlated and zero variance features
+            features_to_remove = [
+                'filt_ZC', 'filt_MYOP', 'env_ZC',
+                'env_AAC', 'env_CC_1', 'env_CC_3', 'env_LOG', 'env_MAV', 'env_MAV1',    
+                'env_MAV2', 'env_MHW', 'env_MTW', 'env_RMS', 'env_SSI', 'env_TM3', 
+                'env_TM4', 'env_TM5', 'env_VAR', 'env_V_Order', 'filt_AR_4', 
+                'filt_CC_1', 'filt_CC_2', 'filt_CC_3', 'filt_CC_4', 'filt_LOG', 
+                'filt_MAV1', 'filt_MAV2', 'filt_MHW', 'filt_MTW', 'filt_RMS', 'filt_SSC', 
+                'filt_SSI', 'filt_TM3', 'filt_TM4', 'filt_TM5', 'filt_VAR', 'filt_V_Order', 
+                'filt_WAMP'
+            ]
+            for feat_to_remove in features_to_remove:
+                combined_feats.pop(feat_to_remove, None)
+                
             all_features.append(combined_feats)
 
     features_df = pd.DataFrame(all_features)
