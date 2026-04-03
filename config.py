@@ -1,1 +1,1 @@
-INPUT_DIM = 3
+INPUT_DIM = 2

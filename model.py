@@ -119,10 +119,9 @@ class EMGModel:
             print(f"Error: File '{filepath}' not found.")
             return None, None
 
-        filt_aac = df['filt_AAC'].values.reshape(-1, 1)
-        env_wl = df['env_WL'].values.reshape(-1, 1)
-        filt_ar2 = df['filt_AR_2'].values.reshape(-1, 1)
-        X = np.hstack([filt_aac, env_wl, filt_ar2])
+        dasdv = df['DASDV'].values.reshape(-1, 1)
+        myop = df['MYOP'].values.reshape(-1, 1)
+        X = np.hstack([dasdv, myop])
         y = df['Output'].values
         return X, y
 

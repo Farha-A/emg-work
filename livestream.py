@@ -15,7 +15,7 @@ def process_livestream(data_stream):
 
     # Load the model
     try:
-        emg_model = EMGModel.load('Models\\optimized_model.h5')
+        emg_model = EMGModel.load('Models\\best_model.h5')
         if emg_model is None:
             return
         print("Model loaded successfully.")
@@ -34,9 +34,14 @@ def process_livestream(data_stream):
         if len(buffer) == 50:
             segment = list(buffer)
             features = FeatureEngineer.calculate_emg_features(segment)
-            feature_vector = np.array([[features['AAC'], features['WL'], features['AR_2']]])
+            feature_vector = np.array([[features['DASDV'], features['MYOP']]])
             prediction = emg_model.predict(feature_vector)
             print(f"Input: {value:.2f} | Buffer Full | Prediction: {prediction}")
+
+            # Clear buffer when model predicts True 
+            if prediction:
+                print("Click detected! Clearing buffer.")
+                buffer.clear()
         else:
             print(f"Input: {value:.2f} | Buffer Filling: {len(buffer)}/50")
 

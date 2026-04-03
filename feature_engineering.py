@@ -1,5 +1,5 @@
 import numpy as np
-from statsmodels.tsa.ar_model import AutoReg
+from imblearn.over_sampling import BorderlineSMOTE
 
 
 class FeatureEngineer:
@@ -43,35 +43,27 @@ class FeatureEngineer:
     #  Feature extraction
     # ------------------------------------------------------------------ #
     @staticmethod
-    def calculate_emg_features(signal, ar_order=4):
-        """Calculate EMG features (AAC, WL, AR_2) from *signal*.
+    def calculate_emg_features(signal, threshold=0.01):
+        """Calculate EMG features (DASDV, MYOP) from *signal*.
 
-        Returns a dict with keys ``'AAC'``, ``'WL'``, ``'AR_2'``.
+        Returns a dict with keys ``'DASDV'``, ``'MYOP'``.
         """
         x = np.array(signal)
         N = len(x)
 
-        # WL – Waveform Length
+        # DASDV – Difference Absolute Standard Deviation Value
         if N > 1:
-            wl = np.sum(np.abs(np.diff(x)))
+            dasdv = np.sqrt(np.sum(np.diff(x)**2) / (N - 1))
         else:
-            wl = 0.0
+            dasdv = 0.0
 
-        # AAC – Average Amplitude Change (WL / N)
+        # MYOP – Myopulse Percentage Rate
         if N > 0:
-            aac = wl / N
+            myop = (1 / N) * np.sum(np.abs(x) >= threshold)
         else:
-            aac = 0.0
+            myop = 0.0
 
-        # AR_2 – 2nd Autoregressive coefficient
-        try:
-            res = AutoReg(x, lags=ar_order).fit()
-            ar_coeffs = res.params[1:]  # [a1, a2, a3, a4]
-            ar_2 = ar_coeffs[1] if len(ar_coeffs) > 1 else 0.0
-        except (ValueError, Exception):
-            ar_2 = 0.0
-
-        return {"AAC": aac, "WL": wl, "AR_2": ar_2}
+        return {"DASDV": dasdv, "MYOP": myop}
 
     # ------------------------------------------------------------------ #
     #  High-level pipelines
@@ -124,7 +116,7 @@ class FeatureEngineer:
     def extract_features_from_df(df, segment_size=50):
         """Extract features from a processed DataFrame.
 
-        Returns a ``DataFrame`` with columns ``['filt_AAC', 'env_WL', 'filt_AR_2', 'Output']``.
+        Returns a ``DataFrame`` with columns ``['DASDV', 'MYOP', 'Output']``.
         """
         import pandas as pd
 
@@ -149,21 +141,52 @@ class FeatureEngineer:
                     filtered_feats = (
                         FeatureEngineer.calculate_emg_features(filtered_segment)
                         if len(filtered_segment) > 0
-                        else {"AAC": 0.0, "WL": 0.0, "AR_2": 0.0}
-                    )
-                    envelope_feats = (
-                        FeatureEngineer.calculate_emg_features(envelope_segment)
-                        if len(envelope_segment) > 0
-                        else {"AAC": 0.0, "WL": 0.0, "AR_2": 0.0}
+                        else {"DASDV": 0.0, "MYOP": 0.0}
                     )
                     extracted.append({
-                        "filt_AAC": filtered_feats["AAC"],
-                        "env_WL": envelope_feats["WL"],
-                        "filt_AR_2": filtered_feats["AR_2"],
+                        "DASDV": filtered_feats["DASDV"],
+                        "MYOP": filtered_feats["MYOP"],
                         "Output": label,
                     })
 
         features_df = pd.DataFrame(extracted)
         if not features_df.empty:
-            features_df = features_df[['filt_AAC', 'env_WL', 'filt_AR_2', 'Output']]
+            features_df = features_df[['DASDV', 'MYOP', 'Output']]
+            features_df = FeatureEngineer.apply_borderline_smote(features_df)
         return features_df
+
+    # ------------------------------------------------------------------ #
+    #  Class-balance (Borderline SMOTE)
+    # ------------------------------------------------------------------ #
+    @staticmethod
+    def apply_borderline_smote(df, target_col='Output', random_state=42):
+        """Upsample the minority class (1) to match the majority class (0)
+        using Borderline SMOTE.
+
+        Parameters
+        ----------
+        df : pandas DataFrame
+            Must contain feature columns and *target_col*.
+        target_col : str
+            Name of the binary label column (default ``'Output'``).
+        random_state : int
+            Seed for reproducibility.
+
+        Returns
+        -------
+        pandas DataFrame
+            Resampled DataFrame with balanced classes.
+        """
+        import pandas as pd
+
+        feature_cols = [c for c in df.columns if c != target_col]
+        X = df[feature_cols]
+        y = df[target_col]
+
+        smote = BorderlineSMOTE(random_state=random_state)
+        X_res, y_res = smote.fit_resample(X, y)
+
+        resampled_df = pd.DataFrame(X_res, columns=feature_cols)
+        resampled_df[target_col] = y_res
+        print(f"Borderline SMOTE applied: {dict(y.value_counts())} → {dict(y_res.value_counts())}")
+        return resampled_df
