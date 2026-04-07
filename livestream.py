@@ -5,6 +5,7 @@ import collections
 import time
 import numpy as np
 
+from config import EMG_BAUD, EMG_INPUT_MODE, EMG_PORT, SIMULATION_DURATION
 from feature_engineering import FeatureEngineer
 from model import EMGModel
 from emg import *
@@ -50,12 +51,21 @@ if __name__ == "__main__":
     from logger import Logger
     from constants import LOGGING_INTERVAL
 
-    emg = EMGReader()
+    use_keyboard_simulation = EMG_INPUT_MODE == "KEYBOARD"
+    emg = EMGReader(
+        port=EMG_PORT,
+        baud=EMG_BAUD,
+        simulate_with_space=use_keyboard_simulation,
+        simulation_duration=SIMULATION_DURATION,
+    )
     time.sleep(2)
 
     logger = Logger("livestream_data")
 
-    print("Starting Live Stream...")
+    print(
+        f"Starting Live Stream... mode={EMG_INPUT_MODE} "
+        f"source={'Space key' if use_keyboard_simulation else EMG_PORT}"
+    )
     try:
         get_val = lambda: emg.envelope
 
