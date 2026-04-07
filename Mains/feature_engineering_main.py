@@ -60,6 +60,7 @@ if __name__ == "__main__":
     features_df = pd.DataFrame(extracted_features)
     if not features_df.empty:
         features_df = features_df[['filt_AAC', 'env_WL', 'filt_AR_2', 'Output']]
+        features_df = FeatureEngineer.apply_borderline_smote(features_df)
 
         print(features_df.head())
         features_df.to_csv('emg_features.csv', index=False)
