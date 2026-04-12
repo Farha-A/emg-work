@@ -13,15 +13,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Masking, Input
+from tensorflow.keras.layers import SimpleRNN, Dense, Dropout, Masking, Input
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, recall_score
 import mlflow
 
 
-class EMGLSTM:
-    """Wraps a small Keras LSTM model for EMG binary classification.
+class EMGRNN:
+    """Wraps a small Keras SimpleRNN model for EMG binary classification.
 
     The model is fed raw (filtered_value, envelope_value) sequences
     derived from the 'value' column of the EMG stream CSV.  Each sequence
@@ -36,9 +36,9 @@ class EMGLSTM:
     # ------------------------------------------------------------------ #
     #  Build
     # ------------------------------------------------------------------ #
-    def build(self, max_seq_len, n_features=2, lstm_units=32, dropout=0.3,
+    def build(self, max_seq_len, n_features=2, rnn_units=32, dropout=0.3,
               verbose=False):
-        """Construct a small LSTM network.
+        """Construct a small SimpleRNN network.
 
         Parameters
         ----------
@@ -46,17 +46,17 @@ class EMGLSTM:
             Length to which every sequence is padded/truncated.
         n_features : int
             Number of features per timestep (default 2: filtered, envelope).
-        lstm_units : int
-            Number of LSTM units (kept small for a lightweight model).
+        rnn_units : int
+            Number of SimpleRNN units (kept small for a lightweight model).
         dropout : float
-            Dropout rate applied after the LSTM layer.
+            Dropout rate applied after the SimpleRNN layer.
         verbose : bool
             Print model summary after building.
         """
         m = Sequential([
             Input(shape=(max_seq_len, n_features)),
             Masking(mask_value=0.0),       # ignore padded timesteps
-            LSTM(lstm_units),
+            SimpleRNN(rnn_units),
             Dropout(dropout),
             Dense(1, activation='sigmoid'),
         ])
@@ -78,7 +78,7 @@ class EMGLSTM:
     #  Train
     # ------------------------------------------------------------------ #
     def train(self, X_train, y_train, epochs=50, batch_size=16):
-        """Train the LSTM. Returns the Keras history object."""
+        """Train the SimpleRNN. Returns the Keras history object."""
         early_stop = tf.keras.callbacks.EarlyStopping(
             monitor='val_loss', patience=8, restore_best_weights=True,
         )
@@ -116,7 +116,7 @@ class EMGLSTM:
     # ------------------------------------------------------------------ #
     #  Save / Load
     # ------------------------------------------------------------------ #
-    def save(self, filepath='lstm_model.h5'):
+    def save(self, filepath='rnn_model.h5'):
         """Persist model to disk."""
         directory = os.path.dirname(filepath)
         if directory:
@@ -184,7 +184,7 @@ class EMGLSTM:
         raw_labels = []
 
         for (sid, lvl), grp in df.groupby(['session_id', 'level_number']):
-            label = EMGLSTM.get_output_label(lvl)
+            label = EMGRNN.get_output_label(lvl)
             if label == -1:
                 continue  # skip unexpected levels
 
@@ -260,7 +260,7 @@ class EMGLSTM:
         plt.subplot(1, 2, 1)
         plt.plot(history.history['accuracy'],   label='Train')
         plt.plot(history.history['val_accuracy'], label='Validation')
-        plt.title('LSTM – Accuracy')
+        plt.title('RNN – Accuracy')
         plt.ylabel('Accuracy')
         plt.xlabel('Epoch')
         plt.legend(loc='upper left')
@@ -268,7 +268,7 @@ class EMGLSTM:
         plt.subplot(1, 2, 2)
         plt.plot(history.history['loss'],     label='Train')
         plt.plot(history.history['val_loss'], label='Validation')
-        plt.title('LSTM – Loss')
+        plt.title('RNN – Loss')
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend(loc='upper left')
@@ -291,7 +291,7 @@ class EMGLSTM:
                                       display_labels=["Off", "Click"])
         fig, ax = plt.subplots(figsize=(6, 5))
         disp.plot(ax=ax, cmap='Blues')
-        ax.set_title('LSTM – Confusion Matrix')
+        ax.set_title('RNN – Confusion Matrix')
         plt.tight_layout()
         tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
         tmp_path = tmp.name
@@ -316,14 +316,14 @@ if __name__ == "__main__":
         )
     )
 
-    # --- Hyper-parameters (small LSTM) ---
-    lstm_units = 16
+    # --- Hyper-parameters (small RNN) ---
+    rnn_units = 16
     dropout = 0.4
     epochs = 200
     batch_size = 16
     test_size = 0.2
     random_state = 13
-    max_seq_len = 50
+    max_seq_len = 100
 
     # --- MLflow setup (use the existing DB in the parent Cleaning folder) ---
     parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -332,18 +332,18 @@ if __name__ == "__main__":
     mlflow.set_experiment("EMG")
 
     print(f"Loading data from {csv_path} ...")
-    X, y, _ = EMGLSTM.load_and_preprocess_data(csv_path, max_seq_len=max_seq_len)
+    X, y, _ = EMGRNN.load_and_preprocess_data(csv_path, max_seq_len=max_seq_len)
     print(f"Data loaded.  X shape: {X.shape},  y shape: {y.shape},  "
           f"max_seq_len: {max_seq_len}")
     print(f"Class distribution: 0 → {int((y == 0).sum())}, "
           f"1 → {int((y == 1).sum())}")
 
-    X_train, X_test, y_train, y_test = EMGLSTM.split_data(
+    X_train, X_test, y_train, y_test = EMGRNN.split_data(
         X, y, test_size=test_size, random_state=random_state,
     )
 
     # Upsample minority class (1) in training set only
-    X_train, y_train = EMGLSTM.upsample_minority(X_train, y_train)
+    X_train, y_train = EMGRNN.upsample_minority(X_train, y_train)
     print(f"Train: {X_train.shape},  Test: {X_test.shape}")
 
     with mlflow.start_run():
@@ -355,43 +355,43 @@ if __name__ == "__main__":
             "num_sequences": X.shape[0],
             "test_size": test_size,
             "random_state": random_state,
-            "model_type": "LSTM",
-            "lstm_units": lstm_units,
+            "model_type": "RNN",
+            "rnn_units": rnn_units,
             "dropout": dropout,
             "epochs": epochs,
             "batch_size": batch_size,
         })
 
         # Build
-        print("Building LSTM model ...")
-        lstm = EMGLSTM()
-        lstm.build(
+        print("Building RNN model ...")
+        rnn = EMGRNN()
+        rnn.build(
             max_seq_len=max_seq_len,
             n_features=2,
-            lstm_units=lstm_units,
+            rnn_units=rnn_units,
             dropout=dropout,
             verbose=True,
         )
 
         # Train
         print("Training ...")
-        history = lstm.train(X_train, y_train, epochs=epochs,
+        history = rnn.train(X_train, y_train, epochs=epochs,
                              batch_size=batch_size)
 
         # Evaluate
-        accuracy = lstm.evaluate(X_test, y_test)
+        accuracy = rnn.evaluate(X_test, y_test)
         print(f"\nTest Accuracy: {accuracy * 100:.2f}%")
 
-        y_pred = (lstm.model.predict(X_test, verbose=0) > 0.5).astype(int).ravel()
-        lstm.detailed_report(X_test, y_test)
+        y_pred = (rnn.model.predict(X_test, verbose=0) > 0.5).astype(int).ravel()
+        rnn.detailed_report(X_test, y_test)
 
         # Log metrics
         mlflow.log_metric("test_accuracy", accuracy)
 
-        train_acc = lstm.evaluate(X_train, y_train)
+        train_acc = rnn.evaluate(X_train, y_train)
         mlflow.log_metric("train_accuracy", train_acc)
 
-        y_train_pred = (lstm.model.predict(X_train, verbose=0) > 0.5).astype(int).ravel()
+        y_train_pred = (rnn.model.predict(X_train, verbose=0) > 0.5).astype(int).ravel()
         
         # Calculate recall for both classes
         test_recalls = recall_score(y_test, y_pred, average=None)
@@ -405,15 +405,15 @@ if __name__ == "__main__":
         mlflow.log_metric("train_recall_class_1", train_recalls[1])
 
         # Log training graphs to MLflow (no local files)
-        EMGLSTM.log_training_graphs(history)
+        EMGRNN.log_training_graphs(history)
 
         # Log confusion matrix to MLflow (no local files)
-        EMGLSTM.log_confusion_matrix(y_test, y_pred)
+        EMGRNN.log_confusion_matrix(y_test, y_pred)
 
         # Save model and log to MLflow
         with tempfile.TemporaryDirectory() as tmp_dir:
-            model_path = os.path.join(tmp_dir, 'lstm_model.h5')
-            lstm.save(model_path)
+            model_path = os.path.join(tmp_dir, 'rnn_model.h5')
+            rnn.save(model_path)
             mlflow.log_artifact(model_path)
 
         print(f"MLflow run logged to experiment 'EMG'")
