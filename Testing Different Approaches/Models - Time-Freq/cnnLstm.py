@@ -493,12 +493,12 @@ if __name__ == "__main__":
     # Options: 'both' (filtered + envelope), 'filtered', 'envelope'
     channel_mode   = 'envelope'
 
-    cnn_filters    = (64, 128)
+    cnn_filters    = (32, 64)
     lstm_units     = 128
     dropout        = 0.3
-    focal_gamma    = 2.0
-    focal_alpha    = 0.25
-    learning_rate  = 1e-6
+    focal_gamma    = 3.5
+    focal_alpha    = 0.65
+    learning_rate  = 1e-4
     epochs         = 500
     batch_size     = 32
     test_size      = 0.2
