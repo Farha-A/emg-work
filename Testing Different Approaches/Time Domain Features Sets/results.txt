@@ -1,0 +1,110 @@
+============================================================
+  Time-Domain Feature Selection Results
+  2026-04-26 22:38:13
+============================================================
+
+────────────────────────────────────────────────────────────
+  Feature Set : All Features
+  # Features  : 60
+  Accuracy    : 59.73%
+  Recall (0)  : 88.05%
+  Recall (1)  : 31.42%
+  Features    : ['filt_WL', 'filt_AAC', 'filt_DASDV', 'filt_IEMG', 'filt_MAV', 'filt_MAV1', 'filt_MAV2', 'filt_SSI', 'filt_VAR', 'filt_TM3', 'filt_TM4', 'filt_TM5', 'filt_RMS', 'filt_V_Order', 'filt_LOG', 'filt_ZC', 'filt_MYOP', 'filt_WAMP', 'filt_SSC', 'filt_MAVSLP', 'filt_MHW', 'filt_MTW', 'filt_AR_1', 'filt_AR_2', 'filt_AR_3', 'filt_AR_4', 'filt_CC_1', 'filt_CC_2', 'filt_CC_3', 'filt_CC_4', 'env_WL', 'env_AAC', 'env_DASDV', 'env_IEMG', 'env_MAV', 'env_MAV1', 'env_MAV2', 'env_SSI', 'env_VAR', 'env_TM3', 'env_TM4', 'env_TM5', 'env_RMS', 'env_V_Order', 'env_LOG', 'env_ZC', 'env_MYOP', 'env_WAMP', 'env_SSC', 'env_MAVSLP', 'env_MHW', 'env_MTW', 'env_AR_1', 'env_AR_2', 'env_AR_3', 'env_AR_4', 'env_CC_1', 'env_CC_2', 'env_CC_3', 'env_CC_4']
+
+────────────────────────────────────────────────────────────
+  Feature Set : SFS (free)
+  # Features  : 2
+  Accuracy    : 73.01%
+  Recall (0)  : 74.78%
+  Recall (1)  : 71.24%
+  Features    : ['filt_AAC', 'env_CC_4']
+
+────────────────────────────────────────────────────────────
+  Feature Set : BFS (55 features)
+  # Features  : 55
+  Accuracy    : 49.34%
+  Recall (0)  : 0.44%
+  Recall (1)  : 98.23%
+  Features    : ['filt_WL', 'filt_AAC', 'filt_DASDV', 'filt_IEMG', 'filt_MAV', 'filt_MAV1', 'filt_MAV2', 'filt_TM3', 'filt_TM4', 'filt_TM5', 'filt_RMS', 'filt_V_Order', 'filt_LOG', 'filt_ZC', 'filt_MYOP', 'filt_SSC', 'filt_MAVSLP', 'filt_MHW', 'filt_MTW', 'filt_AR_1', 'filt_AR_2', 'filt_AR_3', 'filt_CC_1', 'filt_CC_2', 'filt_CC_3', 'filt_CC_4', 'env_WL', 'env_AAC', 'env_DASDV', 'env_IEMG', 'env_MAV', 'env_MAV1', 'env_MAV2', 'env_SSI', 'env_VAR', 'env_TM3', 'env_TM4', 'env_TM5', 'env_RMS', 'env_LOG', 'env_ZC', 'env_MYOP', 'env_WAMP', 'env_SSC', 'env_MAVSLP', 'env_MHW', 'env_MTW', 'env_AR_1', 'env_AR_2', 'env_AR_3', 'env_AR_4', 'env_CC_1', 'env_CC_2', 'env_CC_3', 'env_CC_4']
+
+────────────────────────────────────────────────────────────
+  Feature Set : BFS (50 features)
+  # Features  : 50
+  Accuracy    : 60.18%
+  Recall (0)  : 90.71%
+  Recall (1)  : 29.65%
+  Features    : ['filt_WL', 'filt_AAC', 'filt_DASDV', 'filt_IEMG', 'filt_MAV1', 'filt_MAV2', 'filt_TM3', 'filt_TM4', 'filt_TM5', 'filt_RMS', 'filt_V_Order', 'filt_LOG', 'filt_ZC', 'filt_SSC', 'filt_MHW', 'filt_MTW', 'filt_AR_1', 'filt_AR_2', 'filt_AR_3', 'filt_CC_1', 'filt_CC_2', 'filt_CC_3', 'filt_CC_4', 'env_WL', 'env_AAC', 'env_DASDV', 'env_IEMG', 'env_MAV', 'env_MAV1', 'env_MAV2', 'env_SSI', 'env_VAR', 'env_TM3', 'env_TM4', 'env_TM5', 'env_RMS', 'env_LOG', 'env_ZC', 'env_MYOP', 'env_WAMP', 'env_SSC', 'env_MAVSLP', 'env_MHW', 'env_MTW', 'env_AR_1', 'env_AR_3', 'env_CC_1', 'env_CC_2', 'env_CC_3', 'env_CC_4']
+
+────────────────────────────────────────────────────────────
+  Feature Set : BFS (45 features)
+  # Features  : 45
+  Accuracy    : 57.08%
+  Recall (0)  : 96.02%
+  Recall (1)  : 18.14%
+  Features    : ['filt_WL', 'filt_AAC', 'filt_DASDV', 'filt_IEMG', 'filt_MAV1', 'filt_MAV2', 'filt_TM4', 'filt_TM5', 'filt_RMS', 'filt_V_Order', 'filt_LOG', 'filt_ZC', 'filt_SSC', 'filt_MHW', 'filt_MTW', 'filt_AR_1', 'filt_AR_3', 'filt_CC_1', 'filt_CC_3', 'filt_CC_4', 'env_WL', 'env_DASDV', 'env_IEMG', 'env_MAV', 'env_MAV1', 'env_MAV2', 'env_SSI', 'env_VAR', 'env_TM3', 'env_TM4', 'env_TM5', 'env_RMS', 'env_LOG', 'env_ZC', 'env_MYOP', 'env_WAMP', 'env_SSC', 'env_MAVSLP', 'env_MTW', 'env_AR_1', 'env_AR_3', 'env_CC_1', 'env_CC_2', 'env_CC_3', 'env_CC_4']
+
+────────────────────────────────────────────────────────────
+  Feature Set : BFS (40 features)
+  # Features  : 40
+  Accuracy    : 50.00%
+  Recall (0)  : 0.00%
+  Recall (1)  : 100.00%
+  Features    : ['filt_WL', 'filt_DASDV', 'filt_IEMG', 'filt_MAV1', 'filt_MAV2', 'filt_TM4', 'filt_RMS', 'filt_V_Order', 'filt_LOG', 'filt_ZC', 'filt_SSC', 'filt_MHW', 'filt_MTW', 'filt_AR_1', 'filt_AR_3', 'filt_CC_1', 'filt_CC_3', 'filt_CC_4', 'env_WL', 'env_DASDV', 'env_IEMG', 'env_MAV1', 'env_MAV2', 'env_SSI', 'env_VAR', 'env_TM3', 'env_TM4', 'env_TM5', 'env_RMS', 'env_LOG', 'env_ZC', 'env_WAMP', 'env_SSC', 'env_MAVSLP', 'env_AR_1', 'env_AR_3', 'env_CC_1', 'env_CC_2', 'env_CC_3', 'env_CC_4']
+
+────────────────────────────────────────────────────────────
+  Feature Set : BFS (35 features)
+  # Features  : 35
+  Accuracy    : 50.00%
+  Recall (0)  : 0.00%
+  Recall (1)  : 100.00%
+  Features    : ['filt_WL', 'filt_DASDV', 'filt_IEMG', 'filt_MAV1', 'filt_MAV2', 'filt_TM4', 'filt_RMS', 'filt_V_Order', 'filt_ZC', 'filt_SSC', 'filt_MHW', 'filt_MTW', 'filt_AR_1', 'filt_AR_3', 'filt_CC_1', 'filt_CC_3', 'filt_CC_4', 'env_WL', 'env_DASDV', 'env_IEMG', 'env_MAV1', 'env_MAV2', 'env_SSI', 'env_VAR', 'env_TM3', 'env_TM4', 'env_TM5', 'env_LOG', 'env_MAVSLP', 'env_AR_1', 'env_AR_3', 'env_CC_1', 'env_CC_2', 'env_CC_3', 'env_CC_4']
+
+────────────────────────────────────────────────────────────
+  Feature Set : BFS (30 features)
+  # Features  : 30
+  Accuracy    : 50.00%
+  Recall (0)  : 0.00%
+  Recall (1)  : 100.00%
+  Features    : ['filt_WL', 'filt_MAV2', 'filt_TM4', 'filt_RMS', 'filt_V_Order', 'filt_ZC', 'filt_SSC', 'filt_MHW', 'filt_MTW', 'filt_AR_1', 'filt_CC_1', 'filt_CC_3', 'filt_CC_4', 'env_WL', 'env_DASDV', 'env_IEMG', 'env_MAV1', 'env_MAV2', 'env_SSI', 'env_VAR', 'env_TM4', 'env_TM5', 'env_LOG', 'env_MAVSLP', 'env_AR_1', 'env_AR_3', 'env_CC_1', 'env_CC_2', 'env_CC_3', 'env_CC_4']
+
+────────────────────────────────────────────────────────────
+  Feature Set : SFS (25 features)
+  # Features  : 25
+  Accuracy    : 59.07%
+  Recall (0)  : 19.03%
+  Recall (1)  : 99.12%
+  Features    : ['filt_AAC', 'filt_WAMP', 'filt_DASDV', 'env_AAC', 'filt_SSC', 'env_CC_4', 'filt_AR_4', 'filt_CC_3', 'env_V_Order', 'filt_CC_1', 'filt_CC_4', 'env_MAV1', 'env_MYOP', 'env_IEMG', 'env_CC_2', 'filt_LOG', 'env_CC_3', 'filt_MAV1', 'filt_AR_3', 'filt_AR_2', 'filt_CC_2', 'env_MAV2', 'filt_MYOP', 'env_CC_1', 'env_SSI']
+
+────────────────────────────────────────────────────────────
+  Feature Set : SFS (20 features)
+  # Features  : 20
+  Accuracy    : 53.32%
+  Recall (0)  : 99.56%
+  Recall (1)  : 7.08%
+  Features    : ['filt_AAC', 'filt_WAMP', 'filt_DASDV', 'env_AAC', 'filt_SSC', 'env_CC_4', 'filt_AR_4', 'filt_CC_3', 'env_V_Order', 'filt_CC_1', 'filt_CC_4', 'env_MAV1', 'env_MYOP', 'env_IEMG', 'env_CC_2', 'filt_LOG', 'env_CC_3', 'filt_MAV1', 'filt_AR_3', 'filt_AR_2']
+
+────────────────────────────────────────────────────────────
+  Feature Set : SFS (15 features)
+  # Features  : 15
+  Accuracy    : 50.00%
+  Recall (0)  : 100.00%
+  Recall (1)  : 0.00%
+  Features    : ['filt_AAC', 'filt_WAMP', 'filt_DASDV', 'env_AAC', 'filt_SSC', 'env_CC_4', 'filt_AR_4', 'filt_CC_3', 'env_V_Order', 'filt_CC_1', 'filt_CC_4', 'env_MAV1', 'env_MYOP', 'env_IEMG', 'env_CC_2']
+
+────────────────────────────────────────────────────────────
+  Feature Set : SFS (10 features)
+  # Features  : 10
+  Accuracy    : 65.93%
+  Recall (0)  : 93.81%
+  Recall (1)  : 38.05%
+  Features    : ['filt_AAC', 'filt_WAMP', 'filt_DASDV', 'env_AAC', 'filt_SSC', 'env_CC_4', 'filt_AR_4', 'filt_CC_3', 'env_V_Order', 'filt_CC_1']
+
+────────────────────────────────────────────────────────────
+  Feature Set : SFS (5 features)
+  # Features  : 5
+  Accuracy    : 71.02%
+  Recall (0)  : 79.65%
+  Recall (1)  : 62.39%
+  Features    : ['filt_AAC', 'filt_WAMP', 'filt_DASDV', 'env_AAC', 'filt_SSC']
+
+============================================================
