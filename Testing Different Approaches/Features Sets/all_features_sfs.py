@@ -1,14 +1,14 @@
 """
-All Time-Domain Features + SFS Pipeline
-========================================
-1. Extracts ALL available time-domain features (filtered + envelope) from
-   emg_stream_combined.csv  (no feature removal).
+All Time-Domain + Frequency-Domain Features + SFS Pipeline
+==========================================================
+1. Extracts ALL available time-domain AND frequency-domain (spectral)
+   features from emg_stream_combined.csv (filtered + envelope).
 2. Upsamples minority class (label 1) via random oversampling.
 3. Builds a neural network using hyperparameters from hyperparameters.txt.
 4. Trains on the full feature set; saves accuracy & per-class recall.
-5. Runs SFS with decreasing max-feature limits
-   (total-5, total-10, …, 5) and one run with no limit (free SFS).
-   All results are appended to results.txt.
+5. Runs free SFS, BFS, and SFS on the combined feature set.
+   All results are appended to results.txt with time-domain and
+   frequency-domain features listed separately.
 """
 
 import numpy as np
@@ -22,6 +22,7 @@ import datetime
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+from scipy.signal import welch
 from statsmodels.tsa.ar_model import AutoReg
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, recall_score, classification_report
@@ -145,6 +146,78 @@ def calculate_emg_features(signal, ar_order=4, threshold=0.01):
     return features
 
 
+def calculate_emg_spectral_features(signal, fs=1000, n=20):
+    """
+    Calculates frequency-domain EMG features from a 1-D signal.
+    Uses Welch's method to estimate the PSD, then derives spectral features.
+
+    Parameters
+    ----------
+    signal : array-like
+        1-D EMG signal segment.
+    fs : int
+        Sampling frequency in Hz.
+    n : int
+        Half-bandwidth around PKF for Power Spectrum Ratio (PSR).
+
+    Returns
+    -------
+    dict : feature_name -> value
+    """
+    x = np.array(signal, dtype=float)
+    if len(x) < 4:
+        return {}
+
+    # Estimate PSD via Welch's method
+    frequencies, psd = welch(x, fs=fs, nperseg=min(len(x), 256))
+
+    M = len(psd)
+    if M == 0 or np.sum(psd) == 0:
+        return {}
+
+    # SM0 / TTP (Total Power)
+    sm0 = np.sum(psd)
+    ttp = sm0
+
+    # Spectral Moments
+    sm1 = np.sum(psd * frequencies)
+    sm2 = np.sum(psd * (frequencies ** 2))
+    sm3 = np.sum(psd * (frequencies ** 3))
+
+    # Mean Frequency (MNF)
+    mnf = sm1 / sm0
+
+    # Median Frequency (MDF)
+    cumulative_power = np.cumsum(psd)
+    mdf_idx = np.where(cumulative_power >= sm0 / 2)[0]
+    mdf = frequencies[mdf_idx[0]] if len(mdf_idx) > 0 else 0.0
+
+    # Peak Frequency (PKF)
+    pkf_idx = np.argmax(psd)
+    pkf = frequencies[pkf_idx]
+
+    # Mean Power (MNP)
+    mnp = sm0 / M
+
+    # Frequency Ratio (FR): Low (30-250 Hz) / High (250-1000 Hz)
+    low_mask = (frequencies >= 30) & (frequencies <= 250)
+    high_mask = (frequencies >= 250) & (frequencies <= 1000)
+    fr = (np.sum(psd[low_mask]) / np.sum(psd[high_mask])) if np.any(high_mask) and np.sum(psd[high_mask]) > 0 else 0.0
+
+    # Power Spectrum Ratio (PSR): energy around PKF ± n Hz / total
+    psr_mask = (frequencies >= pkf - n) & (frequencies <= pkf + n)
+    psr = np.sum(psd[psr_mask]) / sm0
+
+    # Variance of Central Frequency (VCF)
+    vcf = (sm2 / sm0) - (sm1 / sm0) ** 2
+
+    return {
+        "MNF": mnf, "MDF": mdf, "PKF": pkf, "MNP": mnp,
+        "TTP": ttp, "SM1": sm1, "SM2": sm2, "SM3": sm3,
+        "FR": fr, "PSR": psr, "VCF": vcf
+    }
+
+
 # ===========================  DATA LOADING  =================================
 
 def load_and_extract_features(file_path, segment_size=50):
@@ -193,6 +266,7 @@ def load_and_extract_features(file_path, segment_size=50):
 
             combined = {}
 
+            # --- Time-domain features ---
             filt_feats = calculate_emg_features(filt_seg)
             for k, v in filt_feats.items():
                 combined[f'filt_{k}'] = v
@@ -200,6 +274,15 @@ def load_and_extract_features(file_path, segment_size=50):
             env_feats = calculate_emg_features(env_seg)
             for k, v in env_feats.items():
                 combined[f'env_{k}'] = v
+
+            # --- Frequency-domain features ---
+            filt_spec = calculate_emg_spectral_features(filt_seg)
+            for k, v in filt_spec.items():
+                combined[f'filt_spec_{k}'] = v
+
+            env_spec = calculate_emg_spectral_features(env_seg)
+            for k, v in env_spec.items():
+                combined[f'env_spec_{k}'] = v
 
             combined['Output'] = output_label
             all_features.append(combined)
@@ -428,15 +511,27 @@ def free_sfs(X_train, X_test, y_train, y_test, feature_names, hp):
 
 # ===========================  RESULTS I/O  ===================================
 
-def write_result(f, label, n_features, feature_list, acc, rec_0, rec_1):
-    """Write one result block to the open file handle."""
+def write_result(f, label, n_features, feature_list, acc, rec_0, rec_1,
+                 time_domain_features=None, freq_domain_features=None):
+    """
+    Write one result block to the open file handle.
+    If time_domain_features and freq_domain_features lists are provided,
+    the selected features are split and printed under separate headings.
+    """
     f.write(f"\n{'─'*60}\n")
     f.write(f"  Feature Set : {label}\n")
     f.write(f"  # Features  : {n_features}\n")
     f.write(f"  Accuracy    : {acc * 100:.2f}%\n")
     f.write(f"  Recall (0)  : {rec_0 * 100:.2f}%\n")
     f.write(f"  Recall (1)  : {rec_1 * 100:.2f}%\n")
-    f.write(f"  Features    : {feature_list}\n")
+
+    if time_domain_features is not None and freq_domain_features is not None:
+        td_selected = [ft for ft in feature_list if ft in time_domain_features]
+        fd_selected = [ft for ft in feature_list if ft in freq_domain_features]
+        f.write(f"  Time-Domain Features  ({len(td_selected)}): {td_selected}\n")
+        f.write(f"  Freq-Domain Features  ({len(fd_selected)}): {fd_selected}\n")
+    else:
+        f.write(f"  Features    : {feature_list}\n")
 
 
 # ===========================  MAIN  ==========================================
@@ -449,7 +544,7 @@ def main():
     # 1. Load hyperparameters (latest entry)
     hp = parse_hyperparameters(HYPERPARAMS_PATH)
 
-    # 2. Extract ALL features
+    # 2. Extract ALL features (time-domain + frequency-domain)
     df = load_and_extract_features(DATA_PATH)
     if df is None or df.empty:
         print("ERROR: no data extracted.")
@@ -460,7 +555,14 @@ def main():
 
     feature_cols = [c for c in df.columns if c != 'Output']
     total_features = len(feature_cols)
-    print(f"\n  Total features (all): {total_features}")
+
+    # --- Build separate time-domain / frequency-domain feature name lists ---
+    time_domain_features = [c for c in feature_cols if '_spec_' not in c]
+    freq_domain_features = [c for c in feature_cols if '_spec_' in c]
+
+    print(f"\n  Total features (all)       : {total_features}")
+    print(f"  Time-domain features       : {len(time_domain_features)}")
+    print(f"  Frequency-domain features  : {len(freq_domain_features)}")
 
     X = df[feature_cols].values
     y = df['Output'].values
@@ -470,23 +572,27 @@ def main():
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    results_file = open(RESULTS_PATH, 'w', encoding='utf-8')
+    results_file = open(RESULTS_PATH, 'a', encoding='utf-8')
     results_file.write("=" * 60 + "\n")
-    results_file.write(f"  Time-Domain Feature Selection Results\n")
+    results_file.write(f"  Time + Frequency Domain Feature Selection Results\n")
     results_file.write(f"  {datetime.datetime.now():%Y-%m-%d %H:%M:%S}\n")
     results_file.write("=" * 60 + "\n")
+    results_file.write(f"  Time-domain features  ({len(time_domain_features)}): {time_domain_features}\n")
+    results_file.write(f"  Freq-domain features  ({len(freq_domain_features)}): {freq_domain_features}\n")
 
-    # ------- 4. Full feature set -------
-    print("\n>>> 1. Training on ALL features ...")
+    # ------- 4. Full feature set (time + frequency) -------
+    print("\n>>> 1. Training on ALL features (time + frequency) ...")
     acc, r0, r1 = train_and_evaluate(X_train, X_test, y_train, y_test, hp)
     print(f"    Accuracy={acc:.4f}  Recall(0)={r0:.4f}  Recall(1)={r1:.4f}")
-    write_result(results_file, "All Features", total_features,
-                 feature_cols, acc, r0, r1)
+    write_result(results_file, "All Features (Time + Freq)", total_features,
+                 feature_cols, acc, r0, r1,
+                 time_domain_features, freq_domain_features)
 
     # ------- 5. Free SFS -------
     print("\n>>> 2. Free SFS (no limit, adding 1 by 1) ...")
     sel, acc, r0, r1 = free_sfs(X_train, X_test, y_train, y_test, feature_cols, hp)
-    write_result(results_file, "SFS (free)", len(sel), sel, acc, r0, r1)
+    write_result(results_file, "SFS (free)", len(sel), sel, acc, r0, r1,
+                 time_domain_features, freq_domain_features)
 
     # ------- 6. BFS dropping 5 -------
     half_features = total_features // 2
@@ -495,17 +601,18 @@ def main():
 
     for k in sorted(bfs_results.keys(), reverse=True):
         sel, acc, r0, r1 = bfs_results[k]
-        write_result(results_file, f"BFS ({k} features)", len(sel), sel, acc, r0, r1)
+        write_result(results_file, f"BFS ({k} features)", len(sel), sel, acc, r0, r1,
+                     time_domain_features, freq_domain_features)
 
     # ------- 7. SFS adding 5 -------
-    # If BFS evaluated 30, SFS should evaluate up to 25.
     sfs_max = half_features - 5 if half_features % 5 == 0 else half_features - (half_features % 5)
     print(f"\n>>> 4. SFS starting from 0 up to {sfs_max} (adding 5 at a time) ...")
     sfs_results = sfs_step(X_train, X_test, y_train, y_test, feature_cols, hp, max_features=sfs_max, step_size=5)
 
     for k in sorted(sfs_results.keys(), reverse=True):
         sel, acc, r0, r1 = sfs_results[k]
-        write_result(results_file, f"SFS ({k} features)", len(sel), sel, acc, r0, r1)
+        write_result(results_file, f"SFS ({k} features)", len(sel), sel, acc, r0, r1,
+                     time_domain_features, freq_domain_features)
 
     results_file.write(f"\n{'='*60}\n")
     results_file.close()
