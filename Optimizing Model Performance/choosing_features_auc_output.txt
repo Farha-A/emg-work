@@ -1,0 +1,147 @@
+
+==================================================
+Starting new run at: 2026-05-05 22:01:29
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.41}
+Loading features from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\features_no_corr_no_zv.csv...
+Loaded 506 rows with 20 features.
+
+Starting Sequential Forward Selection (AUC-ROC)...
+Step 1: Added 'filt_WL' | New Best AUC-ROC: 0.8286
+Step 2: Added 'env_AR_4' | New Best AUC-ROC: 0.8424
+No improvement with remaining features (Max AUC-ROC in this step: 0.8313). Stopping.
+
+==============================
+RESULT
+==============================
+Best AUC-ROC: 0.8424
+Best Feature Set (2): ['filt_WL', 'env_AR_4']
+
+==================================================
+Starting new run at: 2026-05-05 22:14:27
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.41}
+Loading features from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\features_no_corr_no_zv.csv...
+Loaded 506 rows with 20 features.
+
+Starting Sequential Forward Selection (AUC-ROC)...
+Step 1: Added 'env_WL' | New Best AUC-ROC: 0.7563 | Accuracy: 0.2745
+Step 2: Added 'filt_WL' | New Best AUC-ROC: 0.8295 | Accuracy: 0.6471
+Step 3: Added 'filt_AR_2' | New Best AUC-ROC: 0.8325 | Accuracy: 0.3235
+No improvement with remaining features (Max AUC-ROC in this step: 0.8248). Stopping.
+
+==============================
+RESULT
+==============================
+Best AUC-ROC: 0.8325
+Associated Accuracy: 0.3235
+Best Feature Set (3): ['env_WL', 'filt_WL', 'filt_AR_2']
+
+==================================================
+Starting new run at: 2026-05-05 22:19:25
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.41}
+Loading features from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\features_no_corr_no_zv.csv...
+Loaded 506 rows with 20 features.
+
+Starting Sequential Forward Selection (AUC-ROC)...
+Step 1: Added 'filt_WL' | New Best AUC-ROC: 0.8298 | Accuracy: 0.6078
+Step 2: Added 'env_MAVSLP' | New Best AUC-ROC: 0.8330 | Accuracy: 0.6078
+Step 3: Added 'env_AR_1' | New Best AUC-ROC: 0.8483 | Accuracy: 0.6078
+Step 4: Added 'env_SSC' | New Best AUC-ROC: 0.8548 | Accuracy: 0.6275
+No improvement with remaining features (Max AUC-ROC in this step: 0.8548). Stopping.
+
+==============================
+RESULT
+==============================
+Best AUC-ROC: 0.8548
+Associated Accuracy: 0.6275
+Best Feature Set (4): ['filt_WL', 'env_MAVSLP', 'env_AR_1', 'env_SSC']
+
+==================================================
+Starting new run at: 2026-05-05 22:37:40
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.41}
+Loading features from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\features_no_corr_no_zv.csv...
+Loaded 506 rows with 20 features.
+
+Starting Sequential Forward Selection (AUC-ROC + Accuracy)...
+Step 1: Added 'filt_AR_2' | New Best AUC-ROC: 0.7425 | Accuracy: 0.7941 | Combined: 1.5366
+No improvement with remaining features (Max Combined Score in this step: 1.5174). Stopping.
+
+==============================
+RESULT
+==============================
+Best Combined Score: 1.5366
+Best AUC-ROC: 0.7425
+Associated Accuracy: 0.7941
+Best Feature Set (1): ['filt_AR_2']
+
+==================================================
+Starting new run at: 2026-05-05 22:39:34
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.41}
+Loading features from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\features_no_corr_no_zv.csv...
+Loaded 506 rows with 20 features.
+
+Starting Sequential Forward Selection (AUC-ROC + Accuracy)...
+Step 1: Added 'filt_AR_2' | New Best AUC-ROC: 0.7184 | Accuracy: 0.7941 | Combined: 1.5125
+Step 2: Added 'filt_AR_3' | New Best AUC-ROC: 0.7790 | Accuracy: 0.7843 | Combined: 1.5633
+Step 3: Added 'env_AR_3' | New Best AUC-ROC: 0.7748 | Accuracy: 0.7941 | Combined: 1.5690
+Step 4: Added 'env_WAMP' | New Best AUC-ROC: 0.8095 | Accuracy: 0.8039 | Combined: 1.6134
+No improvement with remaining features (Max Combined Score in this step: 1.5999). Stopping.
+
+==============================
+RESULT
+==============================
+Best Combined Score: 1.6134
+Best AUC-ROC: 0.8095
+Associated Accuracy: 0.8039
+Best Feature Set (4): ['filt_AR_2', 'filt_AR_3', 'env_AR_3', 'env_WAMP']
+
+==================================================
+Starting new run at: 2026-05-05 22:46:03
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.41}
+Loading features from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\features_no_corr_no_zv.csv...
+Loaded 506 rows with 20 features.
+
+Starting Sequential Forward Selection (AUC-ROC + Accuracy)...
+Step 1: Added 'filt_MAVSLP' | New Best AUC-ROC: 0.7560 | Accuracy: 0.8039 | Combined: 1.5599
+No improvement with remaining features (Max Combined Score in this step: 1.5598). Stopping.
+
+==============================
+RESULT
+==============================
+Best Combined Score: 1.5599
+Best AUC-ROC: 0.7560
+Associated Accuracy: 0.8039
+Best Feature Set (1): ['filt_MAVSLP']
+
+==================================================
+Starting new run at: 2026-05-05 22:48:17
+==================================================
+
+Loaded hyperparameters: {'hidden_layers': 2, 'neurons': 8, 'dropout': 0.41}
+Loading features from C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\features_no_corr_no_zv.csv...
+Loaded 506 rows with 20 features.
+
+Starting Sequential Forward Selection (AUC-ROC + Accuracy)...
+Step 1: Added 'filt_AR_2' | New Best AUC-ROC: 0.7560 | Accuracy: 0.7941 | Combined: 1.5501
+Step 2: Added 'filt_MAVSLP' | New Best AUC-ROC: 0.7737 | Accuracy: 0.7941 | Combined: 1.5678
+Step 3: Added 'filt_AR_3' | New Best AUC-ROC: 0.8330 | Accuracy: 0.7941 | Combined: 1.6272
+No improvement with remaining features (Max Combined Score in this step: 1.5155). Stopping.
+
+==============================
+RESULT
+==============================
+Best Combined Score: 1.6272
+Best AUC-ROC: 0.8330
+Associated Accuracy: 0.7941
+Best Feature Set (3): ['filt_AR_2', 'filt_MAVSLP', 'filt_AR_3']
