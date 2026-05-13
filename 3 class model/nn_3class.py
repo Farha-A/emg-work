@@ -5,10 +5,11 @@ Trains a neural network for 3-class EMG classification using 4 features:
   filt_AR_2, filt_AR_3, env_AR_3, env_WAMP
 
 Level mapping (level_number -> class label):
-  2, 4 -> 1
-  6    -> 2
-  1, 3, 5, 7 -> 0
+  2, 4 -> 1   (Max / Preference contraction)
+  8    -> 2   (Double click — synthesized)
+  1, 3, 5, 6, 7 -> 0
 
+Data source: emg_stream_combined_with_double_click.csv
 Uses SMOTE for class balancing.
 Model details and metrics are logged to MLflow (experiment 'EMG-3').
 """
@@ -59,7 +60,7 @@ from all_features_sfs import (
 
 DATA_PATH = os.path.join(
     SCRIPT_DIR, os.pardir,
-    'Data', 'Stream', 'emg_stream_combined.csv'
+    'Data', 'Stream', 'emg_stream_combined_with_double_click.csv'
 )
 # Hyperparameters are now hardcoded in the main() function
 
@@ -83,10 +84,10 @@ SELECTED_FEATURES = [
 # ---------------------------------------------------------------------------
 LABEL_MAP = {
     2: 1, 4: 1,
-    6: 2,
-    1: 0, 3: 0, 5: 0, 7: 0,
+    8: 2,
+    1: 0, 3: 0, 5: 0, 6: 0, 7: 0,
 }
-CLASS_NAMES = ["Class 0", "Class 1", "Class 2"]
+CLASS_NAMES = ["Other", "Click (Max/Pref)", "Double Click"]
 NUM_CLASSES = 3
 
 
@@ -253,8 +254,8 @@ def main():
     #  1.  Hyperparameters
     # ------------------------------------------------------------------ #
     hp = {
-        'hidden_layers': 4,
-        'neurons': 16,
+        'hidden_layers': 2,
+        'neurons': 64,
         'dropout': 0.2
     }
     print(f"  Hyperparameters: {hp}")
@@ -289,7 +290,7 @@ def main():
     #  4.  Train / Test split
     # ------------------------------------------------------------------ #
     test_size = 0.2
-    random_state = 42
+    random_state = 13
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y
     )
@@ -316,7 +317,15 @@ def main():
     # ------------------------------------------------------------------ #
     #  7.  Build, train, evaluate – all inside an MLflow run
     # ------------------------------------------------------------------ #
-    with mlflow.start_run():
+    run_name = f"NN-3Class-DoubleClick-{datetime.datetime.now():%Y%m%d-%H%M%S}"
+    with mlflow.start_run(run_name=run_name):
+
+        mlflow.set_tags({
+            "class_2_gesture": "double_click_level_8",
+            "previous_class_2": "eyebrow_raise_level_6",
+            "data_variant": "with_double_click",
+            "notes": "Class 2 swapped from level 6 (Eyebrows raise) to level 8 (Double Click). Level 6 folded into class 0.",
+        })
 
         # --- Log parameters ---
         mlflow.log_params({
@@ -339,6 +348,9 @@ def main():
             "num_features": len(SELECTED_FEATURES),
             # Balancing
             "balancing": "BorderlineSMOTE",
+            # Class identity
+            "class_2_gesture": "double_click_level_8",
+            "class_names": str(CLASS_NAMES),
         })
 
         # --- Build model ---
@@ -401,8 +413,8 @@ def main():
             model.save(model_path)
             mlflow.log_artifact(model_path)
 
-        print(f"\n✓ MLflow run logged to experiment 'EMG-3'  "
-              f"(model_type=NN-3Class, segment_length={SEGMENT_LENGTH})")
+        print(f"\n✓ MLflow run '{run_name}' logged to experiment 'EMG-3' "
+              f"(class 2 = Double Click, segment_length={SEGMENT_LENGTH})")
 
 
 if __name__ == '__main__':
