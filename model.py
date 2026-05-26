@@ -1,4 +1,5 @@
 import os
+import sys
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import numpy as np
@@ -130,6 +131,73 @@ class EMGModel:
         """Split arrays into train/test sets."""
         from sklearn.model_selection import train_test_split
         return train_test_split(X, y, test_size=test_size, random_state=random_state)
+
+    @staticmethod
+    def load_and_extract_stream_features(file_path, segment_size=10, label_map=None):
+        """Load a raw EMG stream CSV, extract time-domain features per segment,
+        apply the binary label map, and return a feature DataFrame."""
+        import ast
+        import pandas as pd
+
+        if label_map is None:
+            label_map = {2: 1, 4: 1, 1: 0, 3: 0, 5: 0, 6: 0, 7: 0}
+
+        _features_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            'Testing Different Approaches', 'Features Sets'
+        )
+        if _features_dir not in sys.path:
+            sys.path.insert(0, _features_dir)
+        from all_features_sfs import calculate_emg_features
+
+        print(f"Loading data from {file_path} ...")
+        df = pd.read_csv(file_path)
+        print(f"  Raw rows: {df.shape[0]}")
+
+        def parse_value(v):
+            try:
+                return ast.literal_eval(str(v))
+            except (ValueError, SyntaxError):
+                return (0.0, 0.0)
+
+        parsed = df['value'].apply(parse_value)
+        df['filtered'] = parsed.apply(lambda t: t[0])
+        df['envelope'] = parsed.apply(lambda t: t[1])
+
+        df['label'] = df['level_number'].map(label_map)
+        df = df.dropna(subset=['label'])
+        df['label'] = df['label'].astype(int)
+
+        all_features = []
+        for (sid, lvl), grp in df.groupby(['session_id', 'level_number'], sort=False):
+            filt_vals = grp['filtered'].values
+            env_vals = grp['envelope'].values
+            output_label = grp['label'].iloc[0]
+
+            n_samples = len(filt_vals)
+            for start in range(0, n_samples, segment_size):
+                filt_seg = filt_vals[start:start + segment_size]
+                env_seg = env_vals[start:start + segment_size]
+
+                if len(filt_seg) < 5:
+                    continue
+
+                combined = {}
+                for k, v in calculate_emg_features(filt_seg).items():
+                    combined[f'filt_{k}'] = v
+                for k, v in calculate_emg_features(env_seg).items():
+                    combined[f'env_{k}'] = v
+                combined['Output'] = output_label
+                all_features.append(combined)
+
+        feat_df = pd.DataFrame(all_features)
+        feat_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+        feat_df.fillna(0, inplace=True)
+
+        print(f"  Extracted {len(feat_df)} segments  |  "
+              f"Features per segment: {len(feat_df.columns) - 1}")
+        print(f"  Class distribution: {dict(feat_df['Output'].value_counts())}")
+        return feat_df
 
     @staticmethod
     def save_training_graphs(history, filename='training_graphs.png'):
