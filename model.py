@@ -109,10 +109,13 @@ class EMGModel:
     #  Data helpers
     # ------------------------------------------------------------------ #
     @staticmethod
-    def load_and_preprocess_data(filepath='emg_features.csv'):
-        """Load a feature CSV and return (X, y) numpy arrays."""
+    def load_and_preprocess_data(filepath='Data/Features/emg_final_4.csv'):
+        """Load a feature CSV and return (X, y) numpy arrays.
+
+        The feature matrix follows the CSV column order and uses every
+        column except ``Output`` as an input feature.
+        """
         import pandas as pd
-        from feature_engineering import FeatureEngineer
 
         try:
             df = pd.read_csv(filepath)
@@ -120,9 +123,16 @@ class EMGModel:
             print(f"Error: File '{filepath}' not found.")
             return None, None
 
-        dasdv = df['DASDV'].values.reshape(-1, 1)
-        myop = df['MYOP'].values.reshape(-1, 1)
-        X = np.hstack([dasdv, myop])
+        if 'Output' not in df.columns:
+            print(f"Error: File '{filepath}' must contain an 'Output' column.")
+            return None, None
+
+        feature_columns = [column for column in df.columns if column != 'Output']
+        if not feature_columns:
+            print(f"Error: File '{filepath}' does not contain any feature columns.")
+            return None, None
+
+        X = df[feature_columns].to_numpy()
         y = df['Output'].values
         return X, y
 

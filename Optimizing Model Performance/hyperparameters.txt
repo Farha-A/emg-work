@@ -22,3 +22,12 @@ Best Hyperparameters:
   Hidden Layers: 2
   Neurons: 8
   Dropout: 0.4100
+
+==================================================
+Starting new run at: 2026-05-27 02:44:59
+Optimization Complete!
+Best Combined Score: 83.13%
+Best Hyperparameters:
+  Hidden Layers: 2
+  Neurons: 64
+  Dropout: 0.1212

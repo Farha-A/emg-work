@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import model
 import tensorflow as tf
 import datetime
+from sklearn.metrics import roc_auc_score
 
 # Suppress TensorFlow logging
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -59,13 +60,17 @@ def fitness_function(position, X_train, y_train, X_test, y_test):
         # Train
         emg_model.train(X_train, y_train, epochs=20, batch_size=32)
         
-        # Evaluate
-        accuracy = emg_model.evaluate(X_test, y_test)
-        
-        print(f"Accuracy: {accuracy:.4f}")
-        
-        # Return minimization objective (1 - accuracy)
-        return 1.0 - accuracy
+        # Evaluate using both thresholded accuracy and ROC-AUC.
+        test_probs = emg_model.model.predict(X_test, verbose=0).ravel()
+        test_preds = (test_probs >= 0.5).astype(int)
+        accuracy = float(np.mean(test_preds == y_test))
+        auc_roc = roc_auc_score(y_test, test_probs)
+        combined_score = (accuracy + auc_roc) / 2.0
+
+        print(f"Accuracy: {accuracy:.4f} | AUC-ROC: {auc_roc:.4f} | Combined: {combined_score:.4f}")
+
+        # Return minimization objective (1 - combined score)
+        return 1.0 - combined_score
         
     except Exception as e:
         print(f"Error in training: {e}")
@@ -126,7 +131,7 @@ def gwo_optimization(X_train, y_train, X_test, y_test, num_wolves=5, max_iter=10
                 delta_score = fitness
                 delta_pos = positions[i, :].copy()
                 
-        print(f"Best Fitness (1-Acc): {alpha_score:.4f}")
+        print(f"Best Fitness (1-Combined): {alpha_score:.4f}")
         
         # Update positions
         a = 2 - l * (2 / max_iter) # a decreases linearly from 2 to 0
@@ -164,7 +169,7 @@ def gwo_optimization(X_train, y_train, X_test, y_test, num_wolves=5, max_iter=10
 if __name__ == "__main__":
     # Load data
     print("Loading data...")
-    X, y = model.EMGModel.load_and_preprocess_data(r'C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\emg_features_cleaned.csv')
+    X, y = model.EMGModel.load_and_preprocess_data(r'C:\University\Grad!!!!!!!!!\Data collection\Cleaning\Data\Features\emg_final_4.csv')
     if X is not None and y is not None:
         X_train, X_test, y_train, y_test = model.EMGModel.split_data(X, y)
         print(f"Data Loaded. Train: {X_train.shape}, Test: {X_test.shape}")
@@ -182,7 +187,7 @@ if __name__ == "__main__":
             f.write("\n==================================================\n")
             f.write("Starting new run at: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
             f.write("Optimization Complete!\n")
-            f.write(f"Best Accuracy: {(1 - best_score) * 100:.2f}%\n")
+            f.write(f"Best Combined Score: {(1 - best_score) * 100:.2f}%\n")
             f.write("Best Hyperparameters:\n")
             f.write(f"  Hidden Layers: {hidden_layers}\n")
             f.write(f"  Neurons: {neurons}\n")
@@ -198,8 +203,14 @@ if __name__ == "__main__":
             verbose=True
         )
         final_emg_model.train(X_train, y_train, epochs=50, batch_size=32)
-        final_acc = final_emg_model.evaluate(X_test, y_test)
+        final_probs = final_emg_model.model.predict(X_test, verbose=0).ravel()
+        final_preds = (final_probs >= 0.5).astype(int)
+        final_acc = float(np.mean(final_preds == y_test))
+        final_auc = roc_auc_score(y_test, final_probs)
+        final_combined = (final_acc + final_auc) / 2.0
         print(f"Final Model Test Accuracy: {final_acc * 100:.2f}%")
+        print(f"Final Model Test AUC-ROC: {final_auc:.4f}")
+        print(f"Final Model Combined Score: {final_combined:.4f}")
         
         final_emg_model.save('optimized_model.h5')
     else:

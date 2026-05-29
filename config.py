@@ -20,7 +20,7 @@ def _load_env_file(env_path=".env"):
 
 _ENV = _load_env_file()
 
-INPUT_DIM = 2
+INPUT_DIM = 4
 EMG_INPUT_MODE = _ENV.get("EMG_INPUT_MODE", "COM").upper()
 EMG_PORT = _ENV.get("EMG_PORT", "COM4")
 EMG_BAUD = int(_ENV.get("EMG_BAUD", "115200"))
