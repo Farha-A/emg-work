@@ -1,14 +1,26 @@
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
+import sys
 import collections
 import time
 import numpy as np
 
 from config import EMG_BAUD, EMG_INPUT_MODE, EMG_PORT, SIMULATION_DURATION
-from feature_engineering import FeatureEngineer
 from model import EMGModel
 from emg import *
+
+# Import the full feature calculator (AR coefficients, WAMP, etc.)
+_features_dir = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'Testing Different Approaches', 'Features Sets'
+)
+if _features_dir not in sys.path:
+    sys.path.insert(0, _features_dir)
+from all_features_sfs import calculate_emg_features
+
+SELECTED_FEATURES = ['filt_AR_2', 'filt_AR_3', 'env_AR_3', 'env_WAMP']
+SEGMENT_LENGTH = 20
 
 
 def process_livestream(data_stream):
@@ -24,27 +36,42 @@ def process_livestream(data_stream):
         print(f"Error loading model: {e}")
         return
 
-    # Sliding buffer of 50 samples
-    buffer = collections.deque(maxlen=50)
+    # Sliding buffer of SEGMENT_LENGTH samples (each entry is a (filtered, envelope) tuple)
+    buffer = collections.deque(maxlen=SEGMENT_LENGTH)
 
     print("Starting livestream processing...")
 
     for value in data_stream:
         buffer.append(value)
 
-        if len(buffer) == 50:
+        if len(buffer) == SEGMENT_LENGTH:
             segment = list(buffer)
-            features = FeatureEngineer.calculate_emg_features(segment)
-            feature_vector = np.array([[features['DASDV'], features['MYOP']]])
+
+            # Split the (filtered, envelope) tuples into separate arrays
+            filtered_seg = np.array([v[0] for v in segment])
+            envelope_seg = np.array([v[1] for v in segment])
+
+            # Extract full time-domain features from both signals
+            filt_feats = calculate_emg_features(filtered_seg)
+            env_feats = calculate_emg_features(envelope_seg)
+
+            # Build the feature vector for the selected features
+            combined = {}
+            for k, v in filt_feats.items():
+                combined[f'filt_{k}'] = v
+            for k, v in env_feats.items():
+                combined[f'env_{k}'] = v
+
+            feature_vector = np.array([[combined[f] for f in SELECTED_FEATURES]])
             prediction = emg_model.predict(feature_vector)
-            print(f"Input: {value:.2f} | Buffer Full | Prediction: {prediction}")
+            print(f"Input: {value} | Buffer Full | Prediction: {prediction}")
 
             # Clear buffer when model predicts True 
             if prediction:
                 print("Click detected! Clearing buffer.")
                 buffer.clear()
         else:
-            print(f"Input: {value:.2f} | Buffer Filling: {len(buffer)}/50")
+            print(f"Input: {value} | Buffer Filling: {len(buffer)}/{SEGMENT_LENGTH}")
 
 
 if __name__ == "__main__":
@@ -67,7 +94,7 @@ if __name__ == "__main__":
         f"source={'Space key' if use_keyboard_simulation else EMG_PORT}"
     )
     try:
-        get_val = lambda: emg.envelope
+        get_val = lambda: (emg.filtered, emg.envelope)
 
         stream = logger.live_stream_generator(
             session_id="live_session",
