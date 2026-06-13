@@ -1,5 +1,4 @@
 import numpy as np
-from imblearn.over_sampling import BorderlineSMOTE
 
 
 class FeatureEngineer:
@@ -178,6 +177,7 @@ class FeatureEngineer:
             Resampled DataFrame with balanced classes.
         """
         import pandas as pd
+        from imblearn.over_sampling import BorderlineSMOTE
 
         feature_cols = [c for c in df.columns if c != target_col]
         X = df[feature_cols]

@@ -82,7 +82,7 @@ class EMGModel:
 
     def predict(self, X):
         """Return a boolean prediction (threshold 0.5)."""
-        value = self.model.predict(X)[0][0]
+        value = self.model(X, training = False).numpy()[0][0]
         return value > 0.5
 
     # ------------------------------------------------------------------ #

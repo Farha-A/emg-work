@@ -7,7 +7,7 @@ import numpy as np
 
 from config import EMG_BAUD, EMG_INPUT_MODE, EMG_PORT, SIMULATION_DURATION
 from feature_engineering import FeatureEngineer
-from model import EMGModel
+from inference_model import NumpyEMGModel as EMGModel
 from emg import *
 
 
@@ -16,7 +16,7 @@ def process_livestream(data_stream):
 
     # Load the model
     try:
-        emg_model = EMGModel.load('Models\\best_model.h5')
+        emg_model = EMGModel.load('Models\\best_model.json')
         if emg_model is None:
             return
         print("Model loaded successfully.")
@@ -26,7 +26,7 @@ def process_livestream(data_stream):
 
     # Sliding buffer of 50 samples
     buffer = collections.deque(maxlen=50)
-
+    prev_prediction = False
     print("Starting livestream processing...")
 
     for value in data_stream:
@@ -37,14 +37,20 @@ def process_livestream(data_stream):
             features = FeatureEngineer.calculate_emg_features(segment)
             feature_vector = np.array([[features['DASDV'], features['MYOP']]])
             prediction = emg_model.predict(feature_vector)
-            print(f"Input: {value:.2f} | Buffer Full | Prediction: {prediction}")
+            # print(f"Input: {value:.2f} | Buffer Full | Prediction: {prediction}")
 
-            # Clear buffer when model predicts True 
+            # Only print when prediction changes 
             if prediction:
-                print("Click detected! Clearing buffer.")
-                buffer.clear()
-        else:
-            print(f"Input: {value:.2f} | Buffer Filling: {len(buffer)}/50")
+                if prev_prediction == prediction: continue
+                print(f"EMG: Prediction: {prediction}",flush=True)
+                prev_prediction = True
+            else:
+                if prev_prediction == prediction: continue
+                prev_prediction = False
+                print(f"EMG: Prediction: {prediction}",flush=True)
+                
+        # else:
+            # print(f"Input: {value:.2f} | Buffer Filling: {len(buffer)}/50")
 
 
 if __name__ == "__main__":
