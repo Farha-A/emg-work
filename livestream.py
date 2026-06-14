@@ -35,7 +35,7 @@ def process_livestream(data_stream):
 
     # Load the model
     try:
-        emg_model = EMGModel.load('Models\\best_model.h5')
+        emg_model = EMGModel.load('Models\\finetuned_model.tflite')
         if emg_model is None:
             return
         print("Model loaded successfully.")
