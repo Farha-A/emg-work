@@ -1,25 +1,32 @@
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
-import sys
 import collections
 import time
 import numpy as np
+from statsmodels.tsa.ar_model import AutoReg
 
 from config import EMG_BAUD, EMG_INPUT_MODE, EMG_PORT, SIMULATION_DURATION
 from model import EMGModel
 from emg import *
 
-# Import the full feature calculator (AR coefficients, WAMP, etc.)
-_features_dir = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    'Testing Different Approaches', 'Features Sets'
-)
-if _features_dir not in sys.path:
-    sys.path.insert(0, _features_dir)
-from all_features_sfs import calculate_emg_features
-
 SELECTED_FEATURES = ['filt_AR_2', 'filt_AR_3', 'env_AR_3', 'env_WAMP']
+
+
+def calculate_emg_features(signal, ar_order=4, threshold=0.01):
+    x = np.array(signal, dtype=float)
+    N = len(x)
+    if N == 0:
+        return {}
+    try:
+        ar_coeffs = AutoReg(x, lags=ar_order).fit().params[1:]
+    except (ValueError, np.linalg.LinAlgError, ZeroDivisionError):
+        ar_coeffs = np.zeros(ar_order)
+    wamp = np.sum(np.abs(np.diff(x)) >= threshold)
+    features = {"WAMP": wamp}
+    for i, val in enumerate(ar_coeffs):
+        features[f"AR_{i + 1}"] = val
+    return features
 SEGMENT_LENGTH = 20
 
 
