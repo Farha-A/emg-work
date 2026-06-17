@@ -7,7 +7,8 @@ import time
 import numpy as np
 
 from config import EMG_BAUD, EMG_INPUT_MODE, EMG_PORT, SIMULATION_DURATION
-from inference_model import NumpyEMGModel as EMGModel
+from model import EMGModel
+# from inference_model import NumpyEMGModel as EMGModel
 from emg import *
 
 # Import the full feature calculator (AR coefficients, WAMP, etc.)
@@ -23,12 +24,13 @@ SELECTED_FEATURES = ['filt_AR_2', 'filt_AR_3', 'env_AR_3', 'env_WAMP']
 SEGMENT_LENGTH = 20
 
 
-def process_livestream(data_stream):
+# def process_livestream(data_stream):
+def process_livestream():
     """Process a live stream of EMG data and predict in real-time."""
 
     # Load the model
     try:
-        emg_model = EMGModel.load('Models\\final_model.json')
+        emg_model = EMGModel.load('Models\\final_model.h5')
         if emg_model is None:
             return
         print("Model loaded successfully.")
@@ -38,10 +40,12 @@ def process_livestream(data_stream):
 
     # Sliding buffer of SEGMENT_LENGTH samples (each entry is a (filtered, envelope) tuple)
     buffer = collections.deque(maxlen=SEGMENT_LENGTH)
-    prev_prediction = False
-    print("Starting livestream processing...")
 
-    for value in data_stream:
+    print("Starting livestream processing...")
+    prev_prediction = False
+    # for value in data_stream:
+    while True:
+        value = (emg.filtered,emg.envelope)
         buffer.append(value)
 
         if len(buffer) == SEGMENT_LENGTH:
@@ -66,19 +70,18 @@ def process_livestream(data_stream):
             prediction = emg_model.predict(feature_vector)
             # print(f"Input: {value} | Buffer Full | Prediction: {prediction}")
 
-            # Only print when prediction changes 
+            # Clear buffer when model predicts True 
             if prediction:
-                if prev_prediction == prediction: continue
-                print(f"EMG: Prediction: {prediction}", flush=True)
-                prev_prediction = True
+                if prediction!=prev_prediction: print("EMG:True",flush=True)
+                prev_prediction = prediction
+                buffer.clear()
             else:
-                if prev_prediction == prediction: continue
-                prev_prediction = False
-                print(f"EMG: Prediction: {prediction}", flush=True)
-                
+                if prediction!=prev_prediction: print("EMG:False",flush=True)
+                prev_prediction = prediction
         # else:
             # print(f"Input: {value} | Buffer Filling: {len(buffer)}/{SEGMENT_LENGTH}")
-
+        
+        time.sleep(0.008)
 
 if __name__ == "__main__":
     from logger import Logger
@@ -102,14 +105,15 @@ if __name__ == "__main__":
     try:
         get_val = lambda: (emg.filtered, emg.envelope)
 
-        stream = logger.live_stream_generator(
-            session_id="live_session",
-            level_number=1,
-            get_value_callable=get_val,
-            interval=LOGGING_INTERVAL,
-        )
+        # stream = logger.live_stream_generator(
+        #     session_id="live_session",
+        #     level_number=1,
+        #     get_value_callable=get_val,
+        #     interval=LOGGING_INTERVAL,
+        # )
 
-        process_livestream(stream)
+        # process_livestream(stream)
+        process_livestream()
 
     except KeyboardInterrupt:
         print("\nStopping...")

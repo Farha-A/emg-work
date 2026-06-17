@@ -28,8 +28,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, recall_score, classification_report
 from sklearn.utils import resample
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Input
+# from tensorflow.keras.models import Sequential
+# from tensorflow.keras.layers import Dense, Dropout, Input
 
 # Reproducibility
 np.random.seed(13)

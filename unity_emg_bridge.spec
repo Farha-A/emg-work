@@ -2,14 +2,13 @@
 
 a = Analysis(
     ['livestream.py'],
-    pathex=[],
+    pathex=['Testing Different Approaches/Features Sets'],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[('Models', 'Models')],
+    hiddenimports=['all_features_sfs'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['tensorflow', 'keras', 'tensorboard', 'imblearn'],
     noarchive=False,
     optimize=0,
 )
@@ -21,7 +20,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='livestream',
+    name='unity_emg_bridge',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -41,5 +40,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='livestream',
+    name='unity_emg_bridge',
 )

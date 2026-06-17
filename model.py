@@ -99,6 +99,12 @@ class EMGModel:
     @classmethod
     def load(cls, filepath):
         """Load a saved model from *filepath* and return an ``EMGModel`` instance."""
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller bundles place files in sys._MEIPASS (_internal subdirectory in onedir mode)
+            resolved_path = os.path.join(sys._MEIPASS, filepath)
+            if os.path.exists(resolved_path):
+                filepath = resolved_path
+
         if not os.path.exists(filepath):
             print(f"Error: Model '{filepath}' not found.")
             return None
