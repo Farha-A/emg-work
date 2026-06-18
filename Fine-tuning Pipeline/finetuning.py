@@ -2,6 +2,7 @@
 
 import os
 import ast
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.ar_model import AutoReg
@@ -9,6 +10,8 @@ from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import BorderlineSMOTE
 
 from model import EMGModel
+
+HERE = Path(__file__).parent
 
 SELECTED_FEATURES = ['filt_AR_2', 'filt_AR_3', 'env_AR_3', 'env_WAMP']
 SEGMENT_LENGTH = 20
@@ -71,8 +74,18 @@ def load_and_extract_features(csv_path, segment_size):
     return feat_df
 
 
-def main(csv_path='finetuningData.csv', model_path='optimized_model_2.h5'):
+def main(
+    csv_path=None,
+    model_path=None,
+    output_path=None,
+):
     """End-to-end finetuning: load data → engineer features → finetune → save."""
+    if csv_path is None:
+        csv_path = str(HERE / "emg_stream.csv")
+    if model_path is None:
+        model_path = str(HERE / "final_model.h5")
+    if output_path is None:
+        output_path = str(HERE / "finetuned_model.tflite")
 
     # 1. Load raw stream and extract features
     print(f"1. Loading data and extracting features from {csv_path}...")
@@ -116,7 +129,6 @@ def main(csv_path='finetuningData.csv', model_path='optimized_model_2.h5'):
     print(f"   Finetuned Model Accuracy: {accuracy * 100:.2f}%")
 
     # 6. Save
-    output_path = os.path.join('Models', 'finetuned_model.h5')
     emg_model.save(output_path)
 
 
